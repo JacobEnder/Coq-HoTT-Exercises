@@ -1,9 +1,24 @@
-From HoTT Require Import Basics Types HSet Spaces.Int Spaces.Finite Spaces.Pos 
-  Algebra.Groups Algebra.AbGroups.
+From HoTT Require Import Basics Types Pointed HSet Spaces.Int Spaces.Finite Spaces.Pos 
+  Algebra.Groups Algebra.AbGroups Spaces.Nat Classes.implementations.peano_naturals
+Spaces.Circle Homotopy.ClassifyingSpace Homotopy.Pi1S1.
 
 Local Open Scope positive_scope.
 Local Open Scope int_scope.
 Local Open Scope mc_mult_scope.
+
+Lemma mod_plus {n : nat} (m k : nat) : @fin_nat n (Nat.add m (fin_to_nat (@fin_nat n k)) ) = @fin_nat n (Nat.add m k).
+Proof.
+  induction k. 
+  + apply ap, ap. exact path_nat_fin_zero.
+Admitted.
+
+Lemma cancellation {n : nat} (x y : Fin n.+1) : fin_to_nat (@fin_nat n (Nat.add (fin_to_nat x) (fin_to_nat y))) = Nat.add (fin_to_nat x) (fin_to_nat y).
+Admitted.
+
+Lemma inclusion_reduction {n : nat} (x : Fin n.+1) : fin_nat (fin_to_nat x) = x.
+Admitted.
+
+Axiom admit : forall {T}, T.
 
 
 (** * Finite cyclic groups *)
@@ -13,12 +28,28 @@ Definition abgroup_fin (n : nat) : AbGroup.
 Proof.
   snrapply Build_AbGroup.
   - snrapply Build_Group.
-    (* Use [+] for the next level of bullets.  You can use things like [unfold SgOp] to see more details about what you need to provide. *)
-Admitted.
-
-(** Define the group homomorphism [abgroup_Z -> abgroup_fin_n] which computes the modulus. *)
-Definition modulo (n : nat) : GroupHomomorphism abgroup_Z (abgroup_fin n).
-Admitted.
+    + exact (Fin n.+1).
+    + intros k l. apply fin_nat. exact (Nat.add (fin_to_nat k) (fin_to_nat l)).
+    + unfold MonUnit. exact fin_zero.
+    + unfold Negate. intro x. apply fin_nat. exact (Nat.sub (n.+1) (fin_to_nat x)).
+    + split; try split.
+      * split.
+        ** intros x y p. destruct p. intro y. cbn. exact _.
+        ** unfold Associative. unfold HeteroAssociative. 
+           intros x y z. unfold "*".
+           refine ((mod_plus (fin_to_nat x) (fin_to_nat y + fin_to_nat z)) @ _).
+           apply ap. refine ((add_assoc (fin_to_nat x) (fin_to_nat y) (fin_to_nat z)) @ _).
+           exact ((ap (fun m => Nat.add m (fin_to_nat z)) (cancellation x y))^).
+      * unfold LeftIdentity. intro y. unfold "*". unfold mon_unit. 
+        refine (ap (fin_nat) (ap (fun m => Nat.add m (fin_to_nat y)) path_nat_fin_zero) @ _).
+        cbn. apply inclusion_reduction.
+      * unfold RightIdentity. intro y. unfold "*". unfold mon_unit.
+        refine (ap (fin_nat) (ap (fun m => Nat.add (fin_to_nat y) m) path_nat_fin_zero) @ _).
+        refine ((ap (fin_nat) (add_n_O (fin_to_nat y)))^ @ _). apply inclusion_reduction.
+      * apply admit.
+      * apply admit.
+  - apply admit.
+Defined.
 
 (** The inclusion of the naturals into the integers. Note that [pos_of_nat] sends [0] to [1], since [Pos] only encodes strictly positive naturals. (I can't believe that this isn't already in the library!) *)
 Definition toZ : nat -> Int.
@@ -28,13 +59,43 @@ Proof.
   - exact (pos (pos_of_nat n.+1)).
 Defined.
 
+Definition pos_to_nat : Core.Pos -> nat.
+Proof.
+  intro p. induction p.
+  + exact (S O).
+  + exact (Nat.add IHp IHp).
+  +  exact (S (Nat.add IHp IHp)).
+Defined.
+
+(** The universal property of the integers *)
+Definition Z_corec `{Univalence} (G : Group) (g : G)
+  : GroupHomomorphism abgroup_Z G.
+Proof.
+  refine (grp_homo_compose _ (grp_iso_inverse Pi1Circle)).
+  apply (equiv_bg_pi1_adjoint _ _)^-1.
+  srapply Build_pMap.
+  1: exact (Circle_rec _ (point _) (bloop g)).
+  reflexivity.
+Defined.
+
+ 
+(** Define the group homomorphism [abgroup_Z -> abgroup_fin_n] which computes the modulus. *)
+Definition modulo `{Univalence} (n : nat) : GroupHomomorphism abgroup_Z (abgroup_fin n).
+Proof.
+ exact (Z_corec (abgroup_fin n) fin_zero).
+Defined.
+
+
 Compute toZ 0.
 Compute toZ 1.
 Compute toZ 2.
 
 (** Show that [n : abgroup_Z] is sent to zero. *)
-Lemma modulo_n_n (n : nat) : modulo n (toZ n) = mon_unit.
-Admitted.
+Lemma modulo_n_n `{Univalence} (n : nat) : modulo n (toZ n) = mon_unit.
+Proof.
+
+  
+Defined.
 
 (** ** Subgroups of [abgroup_Z] *)
 
