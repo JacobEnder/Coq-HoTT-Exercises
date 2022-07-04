@@ -82,7 +82,7 @@ Defined.
 (** Define the group homomorphism [abgroup_Z -> abgroup_fin_n] which computes the modulus. *)
 Definition modulo `{Univalence} (n : nat) : GroupHomomorphism abgroup_Z (abgroup_fin n).
 Proof.
- exact (Z_corec (abgroup_fin n) fin_zero).
+ exact (Z_corec (abgroup_fin n) (@fin_nat n (S O))).
 Defined.
 
 
@@ -93,7 +93,7 @@ Compute toZ 2.
 (** Show that [n : abgroup_Z] is sent to zero. *)
 Lemma modulo_n_n `{Univalence} (n : nat) : modulo n (toZ n) = mon_unit.
 Proof.
-
+  
   
 Defined.
 
