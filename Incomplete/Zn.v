@@ -1,6 +1,6 @@
 From HoTT Require Import Basics Types Pointed HSet Spaces.Int Spaces.Finite Spaces.Pos 
   Algebra.Groups Algebra.AbGroups Spaces.Nat Classes.implementations.peano_naturals
-Spaces.Circle Homotopy.ClassifyingSpace Homotopy.Pi1S1.
+Spaces.Circle Homotopy.ClassifyingSpace Homotopy.Pi1S1 Homotopy.HomotopyGroup Homotopy.Bouquet.
 
 Local Open Scope positive_scope.
 Local Open Scope int_scope.
@@ -64,7 +64,12 @@ Proof.
   intro p. induction p.
   + exact (S O).
   + exact (Nat.add IHp IHp).
-  +  exact (S (Nat.add IHp IHp)).
+  + exact (S (Nat.add IHp IHp)).
+Defined.
+
+Definition unit_bouquet_is_free `{Univalence} : IsFreeGroupOn Unit (Pi 1 (Bouquet Unit)) (pi1bouquet_incl Unit).
+Proof.
+  apply isfreegroupon_pi1bouquet.
 Defined.
 
 (** The universal property of the integers *)
@@ -77,6 +82,10 @@ Proof.
   1: exact (Circle_rec _ (point _) (bloop g)).
   reflexivity.
 Defined.
+
+
+
+
 
  
 (** Define the group homomorphism [abgroup_Z -> abgroup_fin_n] which computes the modulus. *)
