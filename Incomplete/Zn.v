@@ -72,6 +72,19 @@ Proof.
   apply isfreegroupon_pi1bouquet.
 Defined.
 
+Definition free_Z : Group := FreeGroup Unit.
+
+Definition free_Z_uniprop `{Univalence} (G : Group) (g : G) : GroupHomomorphism free_Z G.
+Proof.
+
+Defined.
+
+(** Define the group homomorphism [abgroup_Z -> abgroup_fin_n] which computes the modulus. *)
+Definition modulo `{Univalence} (n : nat) : GroupHomomorphism free_Z (abgroup_fin n).
+Proof.
+ exact (Z_corec (abgroup_fin n) (@fin_nat n (S O))).
+Defined.
+
 (** The universal property of the integers *)
 Definition Z_corec `{Univalence} (G : Group) (g : G)
   : GroupHomomorphism abgroup_Z G.
@@ -82,18 +95,6 @@ Proof.
   1: exact (Circle_rec _ (point _) (bloop g)).
   reflexivity.
 Defined.
-
-
-
-
-
- 
-(** Define the group homomorphism [abgroup_Z -> abgroup_fin_n] which computes the modulus. *)
-Definition modulo `{Univalence} (n : nat) : GroupHomomorphism abgroup_Z (abgroup_fin n).
-Proof.
- exact (Z_corec (abgroup_fin n) (@fin_nat n (S O))).
-Defined.
-
 
 Compute toZ 0.
 Compute toZ 1.
