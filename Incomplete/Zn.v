@@ -67,26 +67,26 @@ Proof.
   + exact (S (Nat.add IHp IHp)).
 Defined.
 
+
+(* Special case of the free group on an n-bouquet *)
 Definition unit_bouquet_is_free `{Univalence} : IsFreeGroupOn Unit (Pi 1 (Bouquet Unit)) (pi1bouquet_incl Unit).
 Proof.
   apply isfreegroupon_pi1bouquet.
 Defined.
 
+
+(* I am defining Z to be the free group on one generator *)
 Definition free_Z : Group := FreeGroup Unit.
 
-Definition free_Z_uniprop `{Univalence} (G : Group) (g : G) : GroupHomomorphism free_Z G.
+(* Universal property of free_Z - my version *)
+Definition free_Z_rec (G : Group) (g : G) : GroupHomomorphism free_Z G.
 Proof.
-
+  apply FreeGroup_rec.
+  exact (fun tt => g).
 Defined.
 
-(** Define the group homomorphism [abgroup_Z -> abgroup_fin_n] which computes the modulus. *)
-Definition modulo `{Univalence} (n : nat) : GroupHomomorphism free_Z (abgroup_fin n).
-Proof.
- exact (Z_corec (abgroup_fin n) (@fin_nat n (S O))).
-Defined.
-
-(** The universal property of the integers *)
-Definition Z_corec `{Univalence} (G : Group) (g : G)
+(** The universal property of the integers - Jarl's version, with the current definition of Z *)
+Definition Z_rec `{Univalence} (G : Group) (g : G)
   : GroupHomomorphism abgroup_Z G.
 Proof.
   refine (grp_homo_compose _ (grp_iso_inverse Pi1Circle)).
@@ -96,18 +96,31 @@ Proof.
   reflexivity.
 Defined.
 
+(** Define the group homomorphism [abgroup_Z -> abgroup_fin_n] which computes the modulus. *)
+
+(* Defined with my free group - previously the old Int was used *)
+Definition modulo (n : nat) : GroupHomomorphism free_Z (abgroup_fin n).
+Proof.
+ exact (free_Z_rec (abgroup_fin n) (@fin_nat n (S O))).
+Defined.
+
 Compute toZ 0.
 Compute toZ 1.
 Compute toZ 2.
 
 (** Show that [n : abgroup_Z] is sent to zero. *)
-Lemma modulo_n_n `{Univalence} (n : nat) : modulo n (toZ n) = mon_unit.
-Proof.
-  
-  
-Defined.
+
+(* The inclusion toZ : Nat -> Int doesn't work anymore of course. *)
+Lemma modulo_n_n (n : nat) : modulo n (toZ n) = mon_unit.
+Admitted.
+
 
 (** ** Subgroups of [abgroup_Z] *)
+
+Lemma cancel_x (x : Int) : -x + x = 0.
+Proof.
+
+Admitted.
 
 (** Subgroups are defined in Algebra.Groups.Subgroup, and they are represented as predicates (i.e. families of propositions) which are appropriately closed (go look at the definition of [IsSubgroup]). *)
 
@@ -118,6 +131,8 @@ Definition subgroup_Z (n : nat) : Subgroup (abgroup_Z).
   - intro a. (* You can write Sigma-types as follows: *)
     exact { b : abgroup_Z & b * toZ n = a }.
   - exact _. (* Coq should already knows it's a proposition. *)
+  - cbn. exact (-(toZ n); cancel_x (toZ n)).
+  - intros x y. cbn. intros s t.
 Admitted.
 
 
