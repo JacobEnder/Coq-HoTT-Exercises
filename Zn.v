@@ -2,6 +2,7 @@ From HoTT Require Import Basics Types Pointed HSet Spaces.Int Spaces.Finite Spac
   Algebra.Groups Algebra.AbGroups Spaces.Nat Classes.implementations.peano_naturals
 Spaces.Circle Homotopy.ClassifyingSpace Homotopy.Pi1S1 Homotopy.HomotopyGroup Homotopy.Bouquet.
 
+Require Import Z.
 Local Open Scope positive_scope.
 Local Open Scope int_scope.
 Local Open Scope mc_mult_scope.
@@ -75,11 +76,8 @@ Proof.
 Defined.
 
 
-(* I am defining Z to be the free group on one generator *)
-Definition free_Z : Group := FreeGroup Unit.
-
 (* Universal property of free_Z - my version *)
-Definition free_Z_rec (G : Group) (g : G) : GroupHomomorphism free_Z G.
+Definition free_Z_rec (G : Group) (g : G) : GroupHomomorphism Z G.
 Proof.
   apply FreeGroup_rec.
   exact (fun tt => g).
@@ -99,7 +97,7 @@ Defined.
 (** Define the group homomorphism [abgroup_Z -> abgroup_fin_n] which computes the modulus. *)
 
 (* Defined with my free group - previously the old Int was used *)
-Definition modulo (n : nat) : GroupHomomorphism free_Z (abgroup_fin n).
+Definition modulo (n : nat) : GroupHomomorphism Z (abgroup_fin n).
 Proof.
  exact (free_Z_rec (abgroup_fin n) (@fin_nat n (S O))).
 Defined.
@@ -112,10 +110,12 @@ Compute toZ 2.
 
 (* The inclusion toZ : Nat -> Int doesn't work anymore of course. *)
 
-(*
-Lemma modulo_n_n (n : nat) : modulo n (toZ n) = mon_unit.
-Admitted.
-*)
+Lemma modulo_n_n (n : nat) : modulo n (nat_to_Z n) = mon_unit.
+Proof.
+  Check (@Z_rec_nat_beta (abgroup_fin n) (@fin_nat n (S O)) n).
+  
+Defined.
+
 
 
 (** ** Subgroups of [abgroup_Z] *)
