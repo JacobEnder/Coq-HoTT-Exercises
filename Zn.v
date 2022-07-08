@@ -111,8 +111,11 @@ Compute toZ 2.
 (** Show that [n : abgroup_Z] is sent to zero. *)
 
 (* The inclusion toZ : Nat -> Int doesn't work anymore of course. *)
+
+(*
 Lemma modulo_n_n (n : nat) : modulo n (toZ n) = mon_unit.
 Admitted.
+*)
 
 
 (** ** Subgroups of [abgroup_Z] *)
@@ -129,9 +132,9 @@ Admitted.
 Definition subgroup_Z (n : nat) : Subgroup (abgroup_Z).
   snrapply Build_Subgroup'. (* This is a "smart constructor" for subgroups. *)
   - intro a. (* You can write Sigma-types as follows: *)
-    exact { b : abgroup_Z & b * toZ n = a }.
+    exact ( merely { b : abgroup_Z & grp_pow b n = a }).
   - exact _. (* Coq should already knows it's a proposition. *)
-  - cbn. exact (-(toZ n); cancel_x (toZ n)).
+  - cbn. exact (0 ; ).
   - intros x y. cbn. intros s t.
 Admitted.
 
