@@ -83,26 +83,6 @@ Proof.
   exact (fun x => freegroup_eta (cons (inl x) nil)).
 Defined.
 
-
-Lemma Z_mul_nat_Sn_gen (n : nat) : Z_mul_nat (S n) Z_gen = Z_mul_nat n Z_gen + Z_gen.
-Proof.
-  refine (FreeGroup_rec_beta _ _ @ _); simpl.
-  apply (grp_cancelR Z_gen).
-  (* exact (grp_unit_r _)^. *)
-Admitted.
-
-Lemma Z_mul_nat_gen (n : nat)
-  : Z_mul_nat n Z_gen = nat_to_Z n.
-Proof.
-  induction n as [|n H].
-  1: easy.
-  refine (Z_mul_nat_Sn_gen _ @ _).
-  unfold nat_to_Z.
-  apply (grp_cancelR Z_gen).
-  (* assumption. *)
-Admitted.
-
-
 (** From this it should be possible to show [moduluo_n_n] since the modulus map is a homomorphism. *)
 
 
