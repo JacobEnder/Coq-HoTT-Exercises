@@ -102,9 +102,11 @@ Proof.
  exact (free_Z_rec (abgroup_fin n) (@fin_nat n (S O))).
 Defined.
 
+(*
 Compute toZ 0.
 Compute toZ 1.
 Compute toZ 2.
+*)
 
 (** Show that [n : abgroup_Z] is sent to zero. *)
 
@@ -112,7 +114,7 @@ Compute toZ 2.
 
 Lemma modulo_n_n (n : nat) : modulo n (nat_to_Z n) = mon_unit.
 Proof.
-  Check (@Z_rec_nat_beta (abgroup_fin n) (@fin_nat n (S O)) n).
+(*  Check (@Z_rec_nat_beta (abgroup_fin n) (@fin_nat n (S O)) n). *)
 Admitted.
 
 
