@@ -1,6 +1,7 @@
 From HoTT Require Import Basics Types Pointed
   Algebra.Groups Algebra.AbGroups Spaces.Circle Homotopy.Pi1S1 Homotopy.ClassifyingSpace
           WildCat.
+Require Import Centralizer FreeGroup2 Subgroup2.
 
 (** ** Working with the free group on one generator *)
 
@@ -73,5 +74,36 @@ Defined.
 
 (** From this it should be possible to show [moduluo_n_n] since the modulus map is a homomorphism. *)
 
-Global Instance Z_commutative : Commutative (@group_sgop Z).
-Admitted.
+(* Put this somewhere else. *)
+Definition commutative_iso_commutative {G H : Group} {C : Commutative (@group_sgop G)}
+           (f : GroupIsomorphism G H)
+  : Commutative (@group_sgop H).
+Proof.
+  unfold Commutative.
+  rapply (equiv_ind f); intro g1.
+  rapply (equiv_ind f); intro g2.
+  refine ((preserves_sg_op _ _)^ @ _ @ (preserves_sg_op _ _)).
+  refine (ap f _).
+  apply C.
+Defined.
+
+Global Instance Z_commutative `{Univalence} : Commutative (@group_sgop Z).
+Proof.
+  snrapply commutative_iso_commutative.
+  - exact (abgroup_cyclic_subgroup Z_gen).
+  - exact _.
+  - etransitivity.
+    2: rapply iso_subgroup_incl_freegroupon.
+    change (fun x : Unit => freegroup_eta (FreeGroup.word_sing Unit (inl x))) with (freegroup_in (A:=Unit)).
+    cbn.
+    unfold cyclic_subgroup.
+    apply equiv_subgroup_group.
+    apply path_subgroup_generated. (* Uses Univalence. *)
+    intro g.
+    cbn.
+    apply equiv_iff_hprop; apply Trunc_functor.
+    + exact (fun p => (tt; p)).  (* [Z_gen] is [freegroup_in tt] *)
+    + intros [[] p].  exact p.
+Defined.
+
+(* Can we avoid Funext and Univalence anywhere? *)
