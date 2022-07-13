@@ -101,7 +101,7 @@ Proof.
     apply path_subgroup_generated. (* Uses Univalence. *)
     intro g.
     cbn.
-    apply equiv_iff_hprop; apply Trunc_functor.
+    split; apply Trunc_functor.
     + exact (fun p => (tt; p)).  (* [Z_gen] is [freegroup_in tt] *)
     + intros [[] p].  exact p.
 Defined.

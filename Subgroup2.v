@@ -8,9 +8,9 @@ Definition subgroup_generated_gen_incl {G : Group} (X : G -> Type)
   : subgroup_generated X
   := (g; tr (sgt_in H)).
 
-Local Lemma path_subgroup_generated_helper `{Univalence} {G : Group}
+Local Lemma path_subgroup_generated_helper {G : Group}
            (X Y : G -> Type)
-           (K : forall g, merely (X g) <~> merely (Y g))
+           (K : forall g, merely (X g) -> merely (Y g))
   : forall g, Trunc (-1) (subgroup_generated_type X g) -> Trunc (-1) (subgroup_generated_type Y g).
 Proof.
   intro g.
@@ -28,15 +28,15 @@ Defined.
 
 Definition path_subgroup_generated `{Univalence} {G : Group}
            (X Y : G -> Type)
-           (K : forall g, merely (X g) <~> merely (Y g))
+           (K : forall g, Trunc (-1) (X g) <-> Trunc (-1) (Y g))
   : subgroup_generated X = subgroup_generated Y.
 Proof.
-  rapply equiv_path_subgroup'.
+  rapply equiv_path_subgroup'. (* Uses Univalence. *)
   intro g.
   split.
-  - apply path_subgroup_generated_helper; assumption.
+  - apply path_subgroup_generated_helper, K.
   - apply path_subgroup_generated_helper.
-    exact (fun g => (K g)^-1%equiv).
+    exact (fun x => snd (K x)).
 Defined.
 
 (* Equal subgroups have isomorphism underlying groups. *)
