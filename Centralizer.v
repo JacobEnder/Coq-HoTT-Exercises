@@ -51,10 +51,14 @@ Defined.
 Definition centralizer_subgroup {G : Group} (g : G)
   := Build_Subgroup G (centralizer g) _.
 
-Definition cyclic_subgroup {G : Group} (g : G) := subgroup_generated (fun h => g = h).
+(* We allow any map [Unit -> G] in this definition, because in applications (such as [Z_commutative]) we have no control over the map. *)
+Definition cyclic_subgroup_from_unit {G : Group} (gen : Unit -> G) := subgroup_generated (hfiber gen).
 
-Global Instance commutative_cyclic_subgroup {G : Group} (g : G)
-  : Commutative (@group_sgop (cyclic_subgroup g)).
+(* When we have a particular element [g] of [G], we could choose the predicate to be [fun h => h = g], but to fit into the above definition, we use [unit_name g], which gives the predicate [fun h => hfiber (unit_name g) h]. *)
+Definition cyclic_subgroup {G : Group} (g : G) := cyclic_subgroup_from_unit (unit_name g).
+
+Global Instance commutative_cyclic_subgroup {G : Group} (gen : Unit -> G)
+  : Commutative (@group_sgop (cyclic_subgroup_from_unit gen)).
 Proof.
   intros h k.
   destruct h as [h H]; cbn in H.
@@ -62,17 +66,17 @@ Proof.
   strip_truncations.
   (* It's enough to check equality after including into G: *)
   apply (equiv_ap_isembedding (subgroup_incl _) _ _)^-1.  cbn.
-  induction H as [h p| |h1 h2 H1 H2 IHH1 IHH2].
+  induction H as [h [[] p]| |h1 h2 H1 H2 IHH1 IHH2].
   - (* The case when h = g: *)
     induction p.
-    induction K as [k q| |k1 k2 K1 K2 IHK1 IHK2].
+    induction K as [k [[] q]| |k1 k2 K1 K2 IHK1 IHK2].
     + (* The case when k = g: *)
       induction q.
       reflexivity.
     + (* The case when k = mon_unit: *)
       apply centralizer_unit.
     + (* The case when k = k1 (-k2): *)
-      srapply (issubgroup_in_op_inv (H:=centralizer g)); assumption.
+      srapply (issubgroup_in_op_inv (H:=centralizer (gen tt))); assumption.
   - (* The case when h = mon_unit: *)
     symmetry; apply centralizer_unit.
   - (* The case when h = h1 (-h2): *)

@@ -8,6 +8,7 @@ Definition subgroup_generated_gen_incl {G : Group} (X : G -> Type)
   : subgroup_generated X
   := (g; tr (sgt_in H)).
 
+(* None of the remaining results in this file are needed anymore.  Still, these seem worth adding to the library. *)
 Local Lemma path_subgroup_generated_helper {G : Group}
            (X Y : G -> Type)
            (K : forall g, merely (X g) -> merely (Y g))
