@@ -9,6 +9,8 @@ Definition subgroup_generated_gen_incl {G : Group} (X : G -> Type)
   := (g; tr (sgt_in H)).
 
 (* None of the remaining results in this file are needed anymore.  Still, these seem worth adding to the library. *)
+
+(* This gets used twice in [path_subgroup_generated], so we factor it out here. *)
 Local Lemma path_subgroup_generated_helper {G : Group}
            (X Y : G -> Type)
            (K : forall g, merely (X g) -> merely (Y g))
@@ -27,6 +29,7 @@ Proof.
     apply sgt_op; assumption.
 Defined.
 
+(* If the predicates selecting the generators are merely equivalent, then the generated subgroups are equal. One could probably prove that the generated subgroup are isomorphic without using univalence. *)
 Definition path_subgroup_generated `{Univalence} {G : Group}
            (X Y : G -> Type)
            (K : forall g, Trunc (-1) (X g) <-> Trunc (-1) (Y g))
@@ -40,7 +43,7 @@ Proof.
     exact (fun x => snd (K x)).
 Defined.
 
-(* Equal subgroups have isomorphism underlying groups. *)
+(* Equal subgroups have isomorphic underlying groups. *)
 Definition equiv_subgroup_group {G : Group}
            (H1 H2 : Subgroup G)
   : H1 = H2 -> GroupIsomorphism H1 H2.
