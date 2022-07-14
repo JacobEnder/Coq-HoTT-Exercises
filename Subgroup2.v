@@ -3,8 +3,7 @@ From HoTT Require Import HoTT.
 (* Things to add to Subgroup.v *)
 (* Should also make G argument to subgroup_group implicit. *)
 
-Definition subgroup_generated_gen_incl {G : Group} (X : G -> Type)
-           (g : G) (H : X g)
+Definition subgroup_generated_gen_incl {G : Group} {X : G -> Type} (g : G) (H : X g)
   : subgroup_generated X
   := (g; tr (sgt_in H)).
 
@@ -38,9 +37,8 @@ Proof.
   rapply equiv_path_subgroup'. (* Uses Univalence. *)
   intro g.
   split.
-  - apply path_subgroup_generated_helper, K.
-  - apply path_subgroup_generated_helper.
-    exact (fun x => snd (K x)).
+  - apply path_subgroup_generated_helper, (fun x => fst (K x)).
+  - apply path_subgroup_generated_helper, (fun x => snd (K x)).
 Defined.
 
 (* Equal subgroups have isomorphic underlying groups. *)
