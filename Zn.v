@@ -102,9 +102,11 @@ Proof.
  exact (free_Z_rec (abgroup_fin n) (@fin_nat n (S O))).
 Defined.
 
+(*
 Compute toZ 0.
 Compute toZ 1.
 Compute toZ 2.
+*)
 
 (** Show that [n : abgroup_Z] is sent to zero. *)
 
@@ -112,9 +114,8 @@ Compute toZ 2.
 
 Lemma modulo_n_n (n : nat) : modulo n (nat_to_Z n) = mon_unit.
 Proof.
-  Check (@Z_rec_nat_beta (abgroup_fin n) (@fin_nat n (S O)) n).
-  
-Defined.
+(*  Check (@Z_rec_nat_beta (abgroup_fin n) (@fin_nat n (S O)) n). *)
+Admitted.
 
 
 
@@ -134,7 +135,7 @@ Definition subgroup_Z (n : nat) : Subgroup (abgroup_Z).
   - intro a. (* You can write Sigma-types as follows: *)
     exact ( merely { b : abgroup_Z & grp_pow b n = a }).
   - exact _. (* Coq should already knows it's a proposition. *)
-  - cbn. exact (0 ; ).
+  - cbn. exact admit. (* exact (0 ; ). *)
   - intros x y. cbn. intros s t.
 Admitted.
 
