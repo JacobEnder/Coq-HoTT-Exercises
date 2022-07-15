@@ -57,11 +57,8 @@ Proof.
   + exact _.
   + snrapply Build_IsExact.
     - snrapply Build_pHomotopy.
-      -- intro e. cbn. unfold ispointed_group.
-       destruct e. cbn in proj2. exact proj2.
-      -- cbn. unfold grp_homo_unit.
-       refine ((concat_1p monmor_unitmor)^ @ _).
-       exact (concat_p1 (1 @ monmor_unitmor))^.
+      -- intro e. cbn. unfold ispointed_group. exact e.2.
+      -- apply path_ishprop.
     - cbn. exact _.
 Defined.
 
