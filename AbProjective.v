@@ -1,6 +1,6 @@
 From HoTT Require Import Basics Types Pointed
   Algebra.Groups Algebra.AbGroups
-  WildCat Limits.Pullback.
+  WildCat Limits.Pullback Homotopy.ExactSequence.
 
 (** * Projective abelian groups *)
 
@@ -41,12 +41,38 @@ Proof.
   intros A E. rapply iff_ab_ext_trivial_split.
   exact (fst (iff_isabprojective_surjections_split P) proj_P E
            (projection E) _).
-  Defined.
+Defined.
 
 (** Can you show the converse? That if [forall A, forall E, tr E = point (Ext P A)] then [P] is projective. *)
 
+(* Jacob : Fix E, P and a surjection E $-> P. Then there is a short
+   exact sequence [ker p $-> E $-> P]. *)
+
+Lemma abses_from_ker `{Univalence} (E P : AbGroup) (p : E $-> P) (H0 : IsSurjection p) : AbSES P (ab_kernel p).
+Proof.
+  srapply (Build_AbSES E).
+  + exact (subgroup_incl _).
+  + apply p.
+  + exact _.
+  + exact _.
+  + snrapply Build_IsExact.
+    - snrapply Build_pHomotopy.
+      -- intro e. cbn. unfold ispointed_group.
+       destruct e. cbn in proj2. exact proj2.
+      -- cbn. unfold grp_homo_unit.
+       refine ((concat_1p monmor_unitmor)^ @ _).
+       exact (concat_p1 (1 @ monmor_unitmor))^.
+    - cbn. exact _.
+Defined.
+
+(* Jacob: Now we can show the converse as stated above. *)
 Proposition abext_trivial_projective `{Univalence} (P : AbGroup) : (forall A, forall E : AbSES P A, tr E = point (Ext P A)) -> IsAbProjective P.
 Proof.
-  Admitted.
+  intro H1. apply iff_isabprojective_surjections_split.
+  intros A p H2.
+  pose (splits := H1 (ab_kernel p) (abses_from_ker A P p H2)).
+  apply (iff_ab_ext_trivial_split (abses_from_ker A P p H2)).
+  exact splits.
+Defined.
 
 (* jarl: Now import this file in [Z.v] and show that [Z] is projective. *)
