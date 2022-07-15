@@ -11,7 +11,7 @@ From HoTT Require Import Basics Types Pointed
 (** An abelian group is [P] projective if for any map [P -> B] and epimorphism [A -> B], there merely exists a lift [P -> A] making the triangle commute. *)
 (* jarl: maybe this should be a Class? *)
 Definition IsAbProjective (P : AbGroup) : Type :=
-  forall (A : AbGroup), forall (B : AbGroup), forall (f : P $-> B), 
+  forall (A B : AbGroup), forall (f : P $-> B),
   forall (e : A $-> B), IsSurjection e -> merely (exists l : P $-> A, e $o l == f).
 
 
@@ -34,7 +34,7 @@ Proof.
     exact (ap f (h x)).
 Defined.
 
-(** Using [iff_ab_ext_trivial_split], show that [AbSES B A] is trivial. *)
+(** When [P] is projective, all extensions ending in [P] are split. *)
 Proposition abext_projective_trivial `{Univalence} (P : AbGroup) {proj_P : IsAbProjective P}
   : forall A, forall E : AbSES P A, tr E = point (Ext P A).
 Proof.
@@ -43,17 +43,24 @@ Proof.
            (projection E) _).
 Defined.
 
-(** Can you show the converse? That if [forall A, forall E, tr E = point (Ext P A)] then [P] is projective. *)
-
-(* Jacob : Fix E, P and a surjection E $-> P. Then there is a short
-   exact sequence [ker p $-> E $-> P]. *)
-
-Lemma abses_from_ker `{Univalence} (E P : AbGroup) (p : E $-> P) (H0 : IsSurjection p) : AbSES P (ab_kernel p).
+(** It follows that when [P] is projective, [Ext P A] is contractible. *)
+Global Instance contr_abext_projective `{Univalence} (P : AbGroup) `{IsAbProjective P}
+  {A : AbGroup}
+  : Contr (Ext P A).
 Proof.
-  srapply (Build_AbSES E).
+  exists (point _).
+  intro E.
+  strip_truncations.
+  symmetry.
+  apply abext_projective_trivial; assumption.
+Defined.
+
+(* Fix [E], [P] and a surjection [E $-> P]. Then there is a short exact sequence [ker p $-> E $-> P]. *)
+Lemma abses_from_surjection {E P : AbGroup} (p : E $-> P) `{IsSurjection p}
+  : AbSES P (ab_kernel p).
+Proof.
+  srapply (Build_AbSES E _ p).
   + exact (subgroup_incl _).
-  + apply p.
-  + exact _.
   + exact _.
   + snrapply Build_IsExact.
     - snrapply Build_pHomotopy.
@@ -62,14 +69,14 @@ Proof.
     - cbn. exact _.
 Defined.
 
-(* Jacob: Now we can show the converse as stated above. *)
-Proposition abext_trivial_projective `{Univalence} (P : AbGroup) : (forall A, forall E : AbSES P A, tr E = point (Ext P A)) -> IsAbProjective P.
+(* Now we show the converse of [abext_projective_trivial]. *)
+Proposition abext_trivial_projective `{Univalence} (P : AbGroup)
+  : (forall A, forall E : AbSES P A, tr E = point (Ext P A)) -> IsAbProjective P.
 Proof.
   intro H1. apply iff_isabprojective_surjections_split.
   intros A p H2.
-  pose (splits := H1 (ab_kernel p) (abses_from_ker A P p H2)).
-  apply (iff_ab_ext_trivial_split (abses_from_ker A P p H2)).
-  exact splits.
+  apply (iff_ab_ext_trivial_split (abses_from_surjection p))^-1.
+  apply H1.
 Defined.
 
 (* jarl: Now import this file in [Z.v] and show that [Z] is projective. *)
