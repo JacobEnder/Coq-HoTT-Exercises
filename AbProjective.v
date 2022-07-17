@@ -11,8 +11,8 @@ From HoTT Require Import Basics Types Pointed
 (** An abelian group is [P] projective if for any map [P -> B] and epimorphism [A -> B], there merely exists a lift [P -> A] making the triangle commute. *)
 (* jarl: maybe this should be a Class? *)
 Definition IsAbProjective (P : AbGroup) : Type :=
-  forall (A : AbGroup), forall (B : AbGroup), forall (f : P $-> B), 
-  forall (e : A $-> B), IsSurjection e -> merely (exists l : P $-> A, e $o l == f).
+  forall (A : AbGroup), forall (B : AbGroup), forall (e : A $-> B),
+  forall (f : P $-> B), IsSurjection e -> Trunc (-1) (exists l : P $-> A, e $o l == f).
 
 
 (** An abelian group is projective iff epis into it merely split. *)
@@ -20,12 +20,12 @@ Definition IsAbProjective (P : AbGroup) : Type :=
 Proposition iff_isabprojective_surjections_split (P : AbGroup)
   : IsAbProjective P <->
       (forall A, forall p : A $-> P,
-          IsSurjection p -> merely (exists s : P $-> A, p $o s == idmap)).
+          IsSurjection p -> Trunc (-1) (exists s : P $-> A, p $o s == idmap)).
 Proof.
   split.
   + intros H A p H1.
-    exact (H A P (grp_homo_id) p H1).
-  + intro H. unfold IsAbProjective. intros A B f e H1.
+    exact (H A P p (grp_homo_id) H1).
+  + intro H. unfold IsAbProjective. intros A B e f H1.
     pose proof (s := H (ab_pullback f e) (grp_pullback_pr1 f e) (conn_map_pullback _ f e)).
     strip_truncations.
     destruct s as [s h].
