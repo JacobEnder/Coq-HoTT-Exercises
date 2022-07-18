@@ -2,6 +2,7 @@ From HoTT Require Import Basics Types Pointed
   Algebra.Groups Algebra.AbGroups Spaces.Circle Homotopy.Pi1S1 Homotopy.ClassifyingSpace
           WildCat.
 Require Import Centralizer FreeGroup2 Subgroup2.
+Require Import AbProjective.
 
 (** ** Working with the free group on one generator *)
 
@@ -91,3 +92,34 @@ Defined.
 Global Instance Z_commutative `{Funext} : Commutative (@group_sgop Z)
   := commutative_iso_commutative iso_subgroup_incl_freegroupon.
 (* [Funext] is used in [isfreegroupon_freegroup], but there is a comment there saying that it can be removed.  If that is done, don't need it here either. A different proof of this result, directly using the construction of the free group, could probably also avoid [Funext]. *)
+
+Lemma Z_rec (G : Group) (g : G) : Z $-> G.
+Proof.
+  apply FreeGroup_rec.
+  exact (fun tt => g).
+Defined.
+
+Lemma ab_Z `{Funext} : AbGroup.
+Proof.
+  snrapply (Build_AbGroup Z).
+  exact Z_commutative.
+Defined.
+
+Lemma Z_projective `{Funext} : IsAbProjective ab_Z.
+Proof.
+  apply iff_isabprojective_surjections_split.
+  intros A p H1.
+  unfold IsConnMap in H1.
+  pose proof (c := @center _ (H1 Z_gen)).
+  strip_truncations.
+  apply tr.
+  unshelve eexists.
+  + apply Z_rec. exact c.1.
+  + apply ap10.
+    change idmap with (grp_homo_map _ _ (@grp_homo_id ab_Z)).
+    apply ap.
+    apply path_homomorphism_from_free_group.
+    intro x. simpl. destruct x.
+    refine (_ @ c.2).
+    exact (ap p (grp_unit_r _)).   
+Defined.
