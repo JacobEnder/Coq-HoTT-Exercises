@@ -93,17 +93,14 @@ Global Instance Z_commutative `{Funext} : Commutative (@group_sgop Z)
   := commutative_iso_commutative iso_subgroup_incl_freegroupon.
 (* [Funext] is used in [isfreegroupon_freegroup], but there is a comment there saying that it can be removed.  If that is done, don't need it here either. A different proof of this result, directly using the construction of the free group, could probably also avoid [Funext]. *)
 
-Lemma Z_rec (G : Group) (g : G) : Z $-> G.
+Lemma Z_rec {G : Group} (g : G) : Z $-> G.
 Proof.
   apply FreeGroup_rec.
-  exact (fun tt => g).
+  exact (fun _ => g).
 Defined.
 
-Lemma ab_Z `{Funext} : AbGroup.
-Proof.
-  snrapply (Build_AbGroup Z).
-  exact Z_commutative.
-Defined.
+Definition ab_Z `{Funext} : AbGroup
+  := Build_AbGroup Z _.
 
 Lemma Z_projective `{Funext} : IsAbProjective ab_Z.
 Proof.
@@ -113,13 +110,14 @@ Proof.
   pose proof (c := @center _ (H1 Z_gen)).
   strip_truncations.
   apply tr.
-  unshelve eexists.
+  snrefine (_; _).
   + apply Z_rec. exact c.1.
-  + apply ap10.
+  + cbn beta. apply ap10.
     change idmap with (grp_homo_map _ _ (@grp_homo_id ab_Z)).
-    apply ap.
+    apply ap. (* of the coercion [grp_homo_map] *)
     apply path_homomorphism_from_free_group.
-    intro x. simpl. destruct x.
+    simpl.
+    intros [].
     refine (_ @ c.2).
-    exact (ap p (grp_unit_r _)).   
+    exact (ap p (grp_unit_r _)).
 Defined.
