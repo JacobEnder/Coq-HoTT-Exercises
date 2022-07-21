@@ -104,10 +104,9 @@ Definition ab_Z `{Funext} : AbGroup
 
 Lemma Z_projective `{Funext} : IsAbProjective ab_Z.
 Proof.
-  apply iff_isabprojective_surjections_split.
-  intros A p H1.
+  intros A B p f H1.
   unfold IsConnMap in H1.
-  pose proof (c := @center _ (H1 Z_gen)).
+  pose proof (c := @center _ (H1 (f Z_gen))).
   strip_truncations.
   apply tr.
   snrefine (_; _).
