@@ -113,7 +113,6 @@ Proof.
   snrefine (_; _).
   + apply Z_rec. exact c.1.
   + cbn beta. apply ap10.
-    change idmap with (grp_homo_map _ _ (@grp_homo_id ab_Z)).
     apply ap. (* of the coercion [grp_homo_map] *)
     apply path_homomorphism_from_free_group.
     simpl.

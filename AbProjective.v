@@ -20,7 +20,7 @@ Definition IsAbProjective (P : AbGroup) : Type :=
 Proposition iff_isabprojective_surjections_split (P : AbGroup)
   : IsAbProjective P <->
       (forall A, forall p : A $-> P,
-          IsSurjection p -> Trunc (-1) (exists s : P $-> A, p $o s == idmap)).
+          IsSurjection p -> Trunc (-1) (exists s : P $-> A, p $o s == grp_homo_id)).
 Proof.
   split.
   + intros H A p.
