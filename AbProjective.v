@@ -23,8 +23,8 @@ Proposition iff_isabprojective_surjections_split (P : AbGroup)
           IsSurjection p -> Trunc (-1) (exists s : P $-> A, p $o s == idmap)).
 Proof.
   split.
-  + intros H A p H1.
-    exact (H A P p (grp_homo_id) H1).
+  + intros H A p.
+    rapply H.
   + intro H. unfold IsAbProjective. intros A B e f H1.
     pose proof (s := H (ab_pullback f e) (grp_pullback_pr1 f e) (conn_map_pullback _ f e)).
     strip_truncations.
