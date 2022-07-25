@@ -16,15 +16,14 @@ Definition IsAbProjective (P : AbGroup) : Type :=
 
 
 (** An abelian group is projective iff epis into it merely split. *)
-(* jarl: The WildCat library gives us handy notation like [A $-> B] for group homomorphisms and [g $o f] for composition of group homomorphisms. You could also write them out (composition is [grp_homo_compose]).  *)
 Proposition iff_isabprojective_surjections_split (P : AbGroup)
   : IsAbProjective P <->
       (forall A, forall p : A $-> P,
-          IsSurjection p -> Trunc (-1) (exists s : P $-> A, p $o s == idmap)).
+          IsSurjection p -> Trunc (-1) (exists s : P $-> A, p $o s == grp_homo_id)).
 Proof.
   split.
-  + intros H A p H1.
-    exact (H A P p (grp_homo_id) H1).
+  + intros H A p.
+    rapply H.
   + intro H. unfold IsAbProjective. intros A B e f H1.
     pose proof (s := H (ab_pullback f e) (grp_pullback_pr1 f e) (conn_map_pullback _ f e)).
     strip_truncations.
@@ -33,6 +32,17 @@ Proof.
     intro x. refine ((pullback_commsq f e _)^ @ _).
     exact (ap f (h x)).
 Defined.
+
+(* A free abelian group on a projective type is projective. *)
+(* Can't do this yet, as the library doesn't have free abelian groups.  The definition of IsAbFreeGroupOn is easy, and the construction could be done by just combining FreeGroup with Abelianization... *)
+(* Here is how the statement would look:
+Definition abprojective_free_abgroup_on_projective
+           {S : Type} `{IsProjective S}
+           {F_S : AbGroup} {i : S -> F_S} `{IsAbFreeGroupOn S F_S i}
+  : IsAbProjective F_S.
+(Need to import Projective.)
+And the proof would be like Z_projective.
+Z_projective would follow, using isprojective_unit. *)
 
 (** When [P] is projective, all extensions ending in [P] are split. *)
 Proposition abext_projective_trivial `{Univalence} (P : AbGroup) {proj_P : IsAbProjective P}
@@ -78,5 +88,3 @@ Proof.
   apply (iff_ab_ext_trivial_split (abses_from_surjection p))^-1.
   apply H1.
 Defined.
-
-(* jarl: Now import this file in [Z.v] and show that [Z] is projective. *)
