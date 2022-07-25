@@ -24,18 +24,36 @@ Proof.
    intro a. reflexivity.
 Defined.
 
-(* Jacob: Showing that for a short exact sequence [A -> E -> B] and maps f : A -> A' and g : B' -> B, we can commute the order of
-   pulling back and pushing out. *)
+(* Composing group homomorphisms with the identity has no effect. *)
+
+Lemma grp_compose_id_r `{Funext} {A B : Group} (f : A $-> B) : grp_homo_compose f grp_homo_id = f.
+Proof.
+    apply equiv_path_grouphomomorphism. reflexivity.
+Defined.
+
+Lemma grp_compose_id_l `{Funext} {A B : Group} (f : A $-> B) : grp_homo_compose grp_homo_id f = f.
+Proof.
+    apply equiv_path_grouphomomorphism. reflexivity.
+Defined.
+
+(* Given a short exact sequence [A -> E -> B] and maps [f : A -> A'], [g : B' -> B], we can change the order of
+   pushing out along f and pulling back along g. *)
+
+(* Jacob: This is the first version of the proof - will look into reasoning backwards to avoid posing. *)
 
 Lemma abses_reorder_pullback_pushout `{Univalence} {A A' B B' : AbGroup} (E : AbSES B A) (f : A $-> A') (g : B' $-> B) :
-    abses_pullback g (abses_pushout f E) = abses_pushout f (abses_pullback g E).
+    abses_pushout0 f (abses_pullback0 g E) = abses_pullback0 g (abses_pushout0 f E).
 Proof.
-  (* All I've done here is add the composite Eg -> fE into context, so that I know I have it - will try to find a way
-     to do this without posing into context, once I figure out the rest of the proof. *)
+  (* There are morphisms [Eg -> E] and [E -> fE] by definition of the pullback and pushout *)
   pose (F := absesmorphism_compose (abses_pushout_morphism E f) (abses_pullback_morphism E g)).
 
-  (* We get a factorization Eg -> (fE)g. *)
-  Check (abses_pullback_morphism_corec F).
-Admitted.
+  (* This composite has a factorization [f(Eg) -> fE], which can be identified with the middle
+   filler map defining (fE)g in the below way. *)
+  pose (K := abses_component1_trivial_pullback (abses_pushout_morphism_rec F) (reflexive_pointwise_paths _ _ _)).
+  simpl in K.
+  rewrite (grp_compose_id_r f) in K. 
+  rewrite (grp_compose_id_l g) in K.
+  exact K.                                                              
+Defined.
  
 
