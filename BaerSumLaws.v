@@ -38,27 +38,24 @@ Definition abses_pushout_homotopic `{Univalence} {A A' B : AbGroup}
   : abses_pushout0 (B:=B) f == abses_pushout0 f'
   := equiv_path_data_homotopy _ _ (abses_pushout_homotopic' _ _ h).
 
-(* Given a short exact sequence [A -> E -> B] and maps [f : A -> A'], [g : B' -> B], we can change the order of pushing out along f and pulling back along g. *)
-
-(* Jacob: This is the first version of the proof - will look into reasoning backwards to avoid posing. *)
-
-Lemma abses_reorder_pullback_pushout `{Univalence} {A A' B B' : AbGroup} (E : AbSES B A) (f : A $-> A') (g : B' $-> B) :
-    abses_pushout f (abses_pullback0 g E) = abses_pullback g (abses_pushout f E).
+(* Given a morphism [f] of short exact sequences, the pushout of the domain along [f_1] equals the pullback of the codomain along [f_3]. *)
+Lemma abses_pushout_is_pullback `{Univalence} {A A' B B' : AbGroup}
+      {E : AbSES B A} {E' : AbSES B' A'} (f : AbSESMorphism E E')
+  : abses_pushout0 (component1 f) E = abses_pullback0 (component3 f) E'.
 Proof.
-  (* There are morphisms [Eg -> E] and [E -> fE] by definition of the pullback and pushout *)
-  pose (F := absesmorphism_compose (abses_pushout_morphism E f) (abses_pullback_morphism E g)).
-
-  (* This composite has a factorization [f(Eg) -> fE], which can be identified with the middle
-   filler map defining (fE)g in the below way. *)
-  refine (_ @ abses_component1_trivial_pullback (abses_pushout_morphism_rec F) (reflexive_pointwise_paths _ _ _) @ _).
-  + rapply abses_pushout_homotopic. reflexivity.
-  + rapply abses_pullback_phomotopic. reflexivity.                                                
+  (* The morphism [f : E -> E'] factors as [E -> f_1 E -> E'], where the first map is the map defining the pushout [f_1 E] and the second map is denoted [abses_pushout_morphism_rec f] below.  This second map is the identity on the first component, so it presents its domain as the pullback of [E'] along [f_3]. *)
+  refine (abses_component1_trivial_pullback (abses_pushout_morphism_rec f) _); reflexivity.
 Defined.
 
-Lemma absesmorphism_pushout_pullback_congruence `{Univalence} {A B : AbGroup} {E F : AbSES B A} (G : AbSESMorphism E F) :
-  abses_pushout (component1 G) E = abses_pullback (component3 G) F.
+(* Given a short exact sequence [A -> E -> B] and maps [f : A -> A'], [g : B' -> B], we can change the order of pushing out along [f] and pulling back along [g]. *)
+Lemma abses_reorder_pullback_pushout `{Univalence} {A A' B B' : AbGroup}
+      (E : AbSES B A) (f : A $-> A') (g : B' $-> B)
+  : abses_pushout0 f (abses_pullback0 g E) = abses_pullback0 g (abses_pushout0 f E).
 Proof.
-  refine (_ @ abses_component1_trivial_pullback (abses_pushout_morphism_rec G) (reflexive_pointwise_paths _ _ _) @ _).
+  (* There are morphisms [Eg -> E] and [E -> fE] by definition of the pullback and pushout. We define [F : Eg -> fE] to be the composite. It's first and third components are [f o id] and [id o g]. *)
+  pose (F := absesmorphism_compose (abses_pushout_morphism E f) (abses_pullback_morphism E g)).
+  (* By [abses_pushout_is_pullback], the pushout of [Eg] along [f o id] is equal to the pullback of [fE] along [id o g]. Then we use that composing with the identity map produces homotopic maps. *)
+  refine (_ @ abses_pushout_is_pullback F @ _).
   + rapply abses_pushout_homotopic. reflexivity.
   + rapply abses_pullback_phomotopic. reflexivity.
 Defined.
@@ -90,7 +87,4 @@ Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A) : abs
 Proof.
   unfold abses_baer_sum.
 Admitted.
-
-
- 
 
