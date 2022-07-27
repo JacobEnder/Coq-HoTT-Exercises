@@ -16,6 +16,7 @@ Defined.
 
 (* Composing group homomorphisms with the identity has no effect. *)
 
+(* Commented out for now, since unused:
 Lemma grp_compose_id_r `{Funext} {A B : Group} (f : A $-> B) : grp_homo_compose f grp_homo_id = f.
 Proof.
     apply equiv_path_grouphomomorphism. reflexivity.
@@ -37,6 +38,7 @@ Definition abses_pushout_homotopic `{Univalence} {A A' B : AbGroup}
   (f f' : A $-> A') (h : f == f')
   : abses_pushout0 (B:=B) f == abses_pushout0 f'
   := equiv_path_data_homotopy _ _ (abses_pushout_homotopic' _ _ h).
+*)
 
 (* Given a morphism [f] of short exact sequences, the pushout of the domain along [f_1] equals the pullback of the codomain along [f_3]. *)
 Lemma abses_pushout_is_pullback `{Univalence} {A A' B B' : AbGroup}
@@ -52,12 +54,10 @@ Lemma abses_reorder_pullback_pushout `{Univalence} {A A' B B' : AbGroup}
       (E : AbSES B A) (f : A $-> A') (g : B' $-> B)
   : abses_pushout0 f (abses_pullback0 g E) = abses_pullback0 g (abses_pushout0 f E).
 Proof.
-  (* There are morphisms [Eg -> E] and [E -> fE] by definition of the pullback and pushout. We define [F : Eg -> fE] to be the composite. It's first and third components are [f o id] and [id o g]. *)
+  (* There are morphisms [Eg -> E] and [E -> fE] by definition of the pullback and pushout. We define [F : Eg -> fE] to be the composite. Its first and third components are [f o id] and [id o g]. *)
   pose (F := absesmorphism_compose (abses_pushout_morphism E f) (abses_pullback_morphism E g)).
-  (* By [abses_pushout_is_pullback], the pushout of [Eg] along [f o id] is equal to the pullback of [fE] along [id o g]. Then we use that composing with the identity map produces homotopic maps. *)
-  refine (_ @ abses_pushout_is_pullback F @ _).
-  + rapply abses_pushout_homotopic. reflexivity.
-  + rapply abses_pullback_phomotopic. reflexivity.
+  (* We change [F] to a morphism that is the same except that the first and third components are [f] and [g]. Then [abses_pushout_is_pullback] shows that the pushout of [Eg] along [f] is equal to the pullback of [fE] along [g]. *)
+  refine (abses_pushout_is_pullback (Build_AbSESMorphism f (component2 F) g _ _)); apply F.
 Defined.
 
 (* The following are a series of lemmas that we rely on for properties of the Baer sum. *)
