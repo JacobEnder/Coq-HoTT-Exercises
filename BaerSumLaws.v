@@ -62,8 +62,21 @@ Defined.
 
 (* The following are a series of lemmas that we rely on for properties of the Baer sum. *)
 
+(* This should replace the result of the same name in BaerSum.v in the library. The only difference is that F is allowed to involve different groups *)
+(** The pointwise direct sum of two short exact sequences. *)
+Definition abses_direct_sum `{Univalence} {B A B' A' : AbGroup} (E : AbSES B A) (F : AbSES B' A')
+  : AbSES (ab_biprod B B') (ab_biprod A A')
+  := Build_AbSES (ab_biprod E F)
+                 (functor_ab_biprod (inclusion E) (inclusion F))
+                 (functor_ab_biprod (projection E) (projection F))
+                 (functor_ab_biprod_embedding _ _)
+                 (functor_ab_biprod_sujection _ _)
+                 (ab_biprod_exact _ _ _ _).
+
 (* There is always a morphism [E + F -> F + E] of short exact sequences, for any two E, F : AbSES B A. *) 
-Definition abses_swap_morphism `{Univalence} {A B : AbGroup} (E F : AbSES B A) : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum F E).
+Definition abses_swap_morphism `{Univalence} {A A' B B' : AbGroup}
+           (E : AbSES B A) (F : AbSES A' B')
+  : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum F E).
 Proof.
   snrapply Build_AbSESMorphism.
   1,2,3: exact direct_sum_swap.
@@ -78,7 +91,7 @@ Proof.
 Defined.
 
 (* Post-composing the diagonal with the swap map has no effect. *)
-Lemma ab_diagonal_swap `{Funext} {A : AbGroup} : (@ab_diagonal A) = direct_sum_swap $o (@ab_diagonal A).
+Lemma ab_diagonal_swap {A : AbGroup} : (@ab_diagonal A) = direct_sum_swap $o (@ab_diagonal A).
 Proof.
   reflexivity.
 Defined.
