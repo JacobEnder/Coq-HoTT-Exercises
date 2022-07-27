@@ -18,13 +18,6 @@ Proof.
     all: reflexivity.
 Defined.
 
-(* Jacob: A quick proof that the swap map is its own inverse. *)
-
-Lemma swap_involution {A B : AbGroup} : @direct_sum_swap A B $o direct_sum_swap == idmap.
-Proof.
-   intro a. reflexivity.
-Defined.
-
 (* Composing group homomorphisms with the identity has no effect. *)
 
 Lemma grp_compose_id_r `{Funext} {A B : Group} (f : A $-> B) : grp_homo_compose f grp_homo_id = f.
@@ -89,18 +82,54 @@ Definition abses_pushout_homotopic `{Univalence} {A A' B : AbGroup}
 (* Jacob: This is the first version of the proof - will look into reasoning backwards to avoid posing. *)
 
 Lemma abses_reorder_pullback_pushout `{Univalence} {A A' B B' : AbGroup} (E : AbSES B A) (f : A $-> A') (g : B' $-> B) :
-    abses_pushout0 f (abses_pullback0 g E) = abses_pullback0 g (abses_pushout0 f E).
+    abses_pushout f (abses_pullback0 g E) = abses_pullback g (abses_pushout f E).
 Proof.
   (* There are morphisms [Eg -> E] and [E -> fE] by definition of the pullback and pushout *)
   pose (F := absesmorphism_compose (abses_pushout_morphism E f) (abses_pullback_morphism E g)).
 
   (* This composite has a factorization [f(Eg) -> fE], which can be identified with the middle
    filler map defining (fE)g in the below way. *)
-  pose (K := abses_component1_trivial_pullback (abses_pushout_morphism_rec F) (reflexive_pointwise_paths _ _ _)).
-  simpl in K.
-  rewrite (grp_compose_id_r f) in K. 
-  rewrite (grp_compose_id_l g) in K.
-  exact K.                                                              
+  refine (_ @ abses_component1_trivial_pullback (abses_pushout_morphism_rec F) (reflexive_pointwise_paths _ _ _) @ _).
+  + rapply abses_pushout_homotopic. reflexivity.
+  + rapply abses_pullback_phomotopic. reflexivity.                                                
 Defined.
+
+Lemma absesmorphism_pushout_pullback_congruence `{Univalence} {A B : AbGroup} {E F : AbSES B A} (G : AbSESMorphism E F) :
+  abses_pushout (component1 G) E = abses_pullback (component3 G) F.
+Proof.
+  refine (_ @ abses_component1_trivial_pullback (abses_pushout_morphism_rec G) (reflexive_pointwise_paths _ _ _) @ _).
+  + rapply abses_pushout_homotopic. reflexivity.
+  + rapply abses_pullback_phomotopic. reflexivity.
+Defined.
+
+(* The following are a series of lemmas that we rely on for properties of the Baer sum. *)
+
+(* There is always a morphism [E + F -> F + E] of short exact sequences, for any two E, F : AbSES B A. *) 
+Definition abses_swap_morphism `{Univalence} {A B : AbGroup} (E F : AbSES B A) : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum F E).
+Proof.
+  snrapply Build_AbSESMorphism.
+  1,2,3: exact direct_sum_swap.
+  all: cbn; reflexivity.
+Defined.
+
+(* Precomposing the codiagonal with the swap map has no effect. *)
+Lemma ab_codiagonal_swap `{Funext} {A : AbGroup} : (@ab_codiagonal A) $o direct_sum_swap = ab_codiagonal.
+Proof.
+  apply equiv_path_grouphomomorphism.
+  intro a. cbn. apply abgroup_commutative.
+Defined.
+
+(* Post-composing the diagonal with the swap map has no effect. *)
+Lemma ab_diagonal_swap `{Funext} {A : AbGroup} : (@ab_diagonal A) = direct_sum_swap $o (@ab_diagonal A).
+Proof.
+  reflexivity.
+Defined.
+
+Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A) : abses_baer_sum E F = abses_baer_sum F E.
+Proof.
+  unfold abses_baer_sum.
+Admitted.
+
+
  
 
