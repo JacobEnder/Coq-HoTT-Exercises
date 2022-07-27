@@ -9,13 +9,9 @@ Require Import AbProjective.
 
 Definition direct_sum_swap {A B : AbGroup} : (ab_biprod A B) $<~> (ab_biprod B A).
 Proof.
-  snrapply Build_GroupIsomorphism.
-  + snrapply Build_GroupHomomorphism.
-  - intro x. exact (snd x, fst x).
-    - intro x. reflexivity.
-  + snrapply Build_IsEquiv.
-    1: intro x; exact (snd x, fst x).
-    all: reflexivity.
+  snrapply Build_GroupIsomorphism'.
+  - apply equiv_prod_symm.
+  - intro x.  reflexivity.
 Defined.
 
 (* Composing group homomorphisms with the identity has no effect. *)
