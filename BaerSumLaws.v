@@ -75,12 +75,12 @@ Definition abses_direct_sum `{Univalence} {B A B' A' : AbGroup} (E : AbSES B A) 
 
 (* There is always a morphism [E + F -> F + E] of short exact sequences, for any two E, F : AbSES B A. *) 
 Definition abses_swap_morphism `{Univalence} {A A' B B' : AbGroup}
-           (E : AbSES B A) (F : AbSES A' B')
+           (E : AbSES B A) (F : AbSES B' A')
   : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum F E).
 Proof.
   snrapply Build_AbSESMorphism.
   1,2,3: exact direct_sum_swap.
-  all: cbn; reflexivity.
+  all: reflexivity.
 Defined.
 
 (* Precomposing the codiagonal with the swap map has no effect. *)
@@ -96,8 +96,19 @@ Proof.
   reflexivity.
 Defined.
 
-Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A) : abses_baer_sum E F = abses_baer_sum F E.
+Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A)
+  : abses_baer_sum E F = abses_baer_sum F E.
 Proof.
   unfold abses_baer_sum.
+  refine (_ @ _).
+  - refine (ap (abses_pullback ab_diagonal) _).
+    rewrite <- ab_codiagonal_swap.  (* Use refine (_ @ _) and ap instead. *)
+    refine (_ @ _).
+    1: symmetry; rapply abses_pushout_compose.
+    refine (_ @ _).
+    1: exact (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F))).
+    unfold abses_swap_morphism, component3.
+    admit.
+  - 
 Admitted.
 
