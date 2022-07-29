@@ -108,7 +108,9 @@ Proof.
     refine (_ @ _).
     1: exact (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F))).
     unfold abses_swap_morphism, component3.
-    admit.
-  - 
+    refine (_ @ _).
+    1: exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
+    
+  -
 Admitted.
 
