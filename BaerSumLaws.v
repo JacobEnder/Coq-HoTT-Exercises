@@ -1,9 +1,10 @@
 From HoTT Require Import Basics Types Pointed Homotopy.ExactSequence WildCat
-  AbGroups.AbelianGroup AbSES.Core AbSES.Pullback AbSES.Pushout BaerSum AbGroups.AbPushout.
+AbGroups.AbelianGroup AbSES.Core AbSES.Pullback AbSES.Pushout BaerSum AbGroups.AbPushout.
 
 Require Import AbProjective.
 
 (** The swap isomorphism of the direct product of two abelian groups. *)
+
 Definition direct_sum_swap {A B : AbGroup} : (ab_biprod A B) $<~> (ab_biprod B A).
 Proof.
   snrapply Build_GroupIsomorphism'.
@@ -70,7 +71,23 @@ Definition abses_direct_sum `{Univalence} {B A B' A' : AbGroup} (E : AbSES B A) 
                  (functor_ab_biprod_sujection _ _)
                  (ab_biprod_exact _ _ _ _).
 
-(* There is always a morphism [E + F -> F + E] of short exact sequences, for any two E, F : AbSES B A. *) 
+(** For any short exact sequence [E], there is a morphism [E -> E + E], where each component is ab_diagonal. *)
+Definition abses_diagonal `{Univalence} {A B : AbGroup} (E : AbSES B A) : AbSESMorphism E (abses_direct_sum E E).
+Proof.
+  snrapply Build_AbSESMorphism.
+  1,2,3: exact ab_diagonal.
+  all: reflexivity.
+Defined.
+
+(** For any short exact sequence [E], there is dually a morphism [E + E -> E], with each component being the codiagonal. *)
+Definition abses_codiagonal `{Univalence} {A B : AbGroup} (E : AbSES B A) : AbSESMorphism (abses_direct_sum E E) E.
+Proof.
+  snrapply Build_AbSESMorphism.
+  1,2,3: exact ab_codiagonal.
+  all: intro x; cbn; apply grp_homo_op.
+Defined.
+
+(** There is always a morphism [E + F -> F + E] of short exact sequences, for any [E : AbSES B A] and [F : AbSES B' A']. *) 
 Definition abses_swap_morphism `{Univalence} {A A' B B' : AbGroup}
            (E : AbSES B A) (F : AbSES B' A')
   : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum F E).
@@ -87,23 +104,24 @@ Proof.
   intro a. cbn. apply abgroup_commutative.
 Defined.
 
-(* The corresponding result for the diagonal is true definitionally, so it isn't strictly necessary to state it, but we record it anyways. *)
-Definition ab_diagonal_swap {A : AbGroup} : direct_sum_swap $o (@ab_diagonal A) = ab_diagonal
-  := idpath.
 
-(* Jacob: This is the isomorphism [A + (A + A) <~> (A + A) + A] that associativity relies on in Mac Lane. I get the sense that there is a much shorter way to do this - feel free to rewrite. *)
+(* The corresponding result for the diagonal is true definitionally, so it isn't strictly necessary to state it, but we record it anyways. *)
+Definition ab_diagonal_swap {A : AbGroup} : direct_sum_swap $o (@ab_diagonal A) = ab_diagonal := idpath.
+                                        
+(*  This is the isomorphism [A + (A + A) <~> (A + A) + A] that associativity relies on in Mac Lane. *)
+
 Lemma ab_biprod_assoc {A : AbGroup} : ab_biprod A (ab_biprod A A) $<~> ab_biprod (ab_biprod A A) A.
 Proof.
   - snrapply Build_GroupIsomorphism'.
     + apply equiv_prod_assoc.
-    + unfold IsSemiGroupPreserving.  reflexivity.
+    + unfold IsSemiGroupPreserving. reflexivity.
 Defined.
 
 (* We now get that [(ab_diagonal + id) o ab_diagonal = (id + ab_diagonal) o ab_diagonal] after passing into the right direct sum via the above isomorphism. *)
-Definition ab_commute_id_diagonal {A : AbGroup} :
+Definition  ab_commute_id_diagonal `{Funext} {A : AbGroup} :
   (functor_ab_biprod (@ab_diagonal A) grp_homo_id) $o ab_diagonal =
     ab_biprod_assoc $o (functor_ab_biprod grp_homo_id ab_diagonal) $o ab_diagonal
-  := idpath.
+    := idpath.
 
 (* A similar result for the codiagonal. *)
 Lemma ab_commute_id_codiagonal `{Funext} {A : AbGroup} :
@@ -115,19 +133,72 @@ Proof.
   exact (grp_assoc _ _ _)^.
 Defined.
 
-(** The Baer sum is symmetric. *)
+(** A proof of commutativity of the Baer sum. *)
 Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A)
   : abses_baer_sum E F = abses_baer_sum F E.
 Proof.
   unfold abses_baer_sum.
   refine (_ @ _).
-  - refine (ap (abses_pullback ab_diagonal) _).
+  - refine (ap (abses_pullback ab_diagonal) _). 
     refine (ap (fun f => abses_pushout f _) ab_codiagonal_swap^ @ _).
-    refine (_^ @ _).
+    refine (_^ @_).
     1: nrapply abses_pushout_compose.
     refine (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F)) @ _).
     unfold abses_swap_morphism, component3.
     exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
   - exact (abses_pullback_compose ab_diagonal direct_sum_swap _).
-    (* This uses that [direct_sum_swap $o ab_diagonal] is definitionally equal to [ab_diagonal]. *)
+
+  (* This uses that [direct_sum_swap $o ab_diagonal] is definitionally equal to [ab_diagonal]. *)
 Defined.
+
+(** The zero homomorphism from [A] to [B]. *)
+Definition zero_hom {A B : Group} : A $-> B.
+Proof.
+  snrapply Build_GroupHomomorphism.
+  + exact (fun x => mon_unit).
+  + unfold IsSemiGroupPreserving. intros a b.
+    exact (grp_unit_l mon_unit)^.
+Defined.
+
+(** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the 
+    zero homomorphism [0_C : C $-> C]. *)
+Lemma abses_split_is_composite `{Univalence} {A B : AbGroup} (E : AbSES B A) : point (AbSES B A) = abses_pullback (zero_hom) E.
+Proof.
+  apply equiv_path_abses.
+Admitted.
+
+(** The sum of two group homomorphisms can be rewritten as a composite of their direct sums with the diagonal and codiagonal. *)
+Lemma sum_maps_composite `{Funext} {A B : AbGroup} (f g : B $-> A) :
+  ab_homo_add f g = ab_codiagonal $o ((functor_ab_biprod f g) $o ab_diagonal).
+Proof.
+  apply equiv_path_grouphomomorphism.
+  cbn. reflexivity.
+Defined.
+
+(** For any two [E, F : AbSES B A] and [f, g : B' $-> B], we have (E + F)(f + g) = Ef + Eg, where + denotes the direct sum. *)
+Lemma abses_directsum_distributive_pullbacks `{Univalence} {A B B' : AbGroup} {E F : AbSES B A} (f g : B' $-> B) :
+  abses_pullback (functor_ab_biprod f g) (abses_direct_sum E F) = abses_direct_sum (abses_pullback f E) (abses_pullback g F).
+Proof.
+  
+Admitted.
+
+(** The analogous result follows for the Baer sum, rather than the direct sum. *)
+Lemma baer_sum_distributive_pullbacks `{Univalence} {A B B' : AbGroup} (E : AbSES B A) (f g : B' $-> B) :
+  abses_pullback (ab_homo_add f g) E = abses_baer_sum (abses_pullback f E) (abses_pullback g E).
+Proof.
+  unfold abses_baer_sum.
+  refine (_ @ _).
+  - refine (ap (fun f => abses_pullback f _) (sum_maps_composite _ _) @ _).
+    refine (_^ @ _).
+    1: exact (abses_pullback_compose (functor_ab_biprod f g $o ab_diagonal) ab_codiagonal _).
+    refine (ap (abses_pullback _) _).
+    refine ((abses_pushout_is_pullback (abses_codiagonal E))^).
+  - unfold abses_codiagonal, component1.
+    refine ((abses_reorder_pullback_pushout _  ab_codiagonal _)^ @ _).
+    refine (ap (abses_pushout ab_codiagonal) _ @ _).
+    + refine ((abses_pullback_compose ab_diagonal (functor_ab_biprod f g) _)^ @ _).
+      refine (ap (abses_pullback ab_diagonal) (abses_directsum_distributive_pullbacks f g)).
+    + exact (abses_reorder_pullback_pushout _ ab_codiagonal ab_diagonal).
+Defined.
+
+
