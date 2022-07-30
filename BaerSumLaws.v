@@ -96,21 +96,60 @@ Proof.
   reflexivity.
 Defined.
 
+(* Jacob: This is the isomorphism [A + (A + A) <~> (A + A) + A] that associativity relies on in Mac Lane. I get the sense that
+   there is a much shorter way to do this - feel free to rewrite. *)
+
+Lemma ab_biprod_assoc {A : AbGroup} : ab_biprod A (ab_biprod A A) $<~> ab_biprod (ab_biprod A A) A.
+Proof.
+  - snrapply Build_GroupIsomorphism.
+    + snrapply Build_GroupHomomorphism.
+      * intro x. destruct x as [f s]. destruct s as [s t]. exact ((f,s),t).
+      * unfold IsSemiGroupPreserving. reflexivity.
+    + srapply Build_IsEquiv.
+      * intro x. destruct x as [f t]. destruct f as [f s]. exact (f, (s,t)).
+      * intro x. destruct x as [f t]. destruct f as [f s]. reflexivity.
+      * intro x. destruct x as [f s]. destruct s as [s t]. reflexivity.
+      * cbn. reflexivity.
+Defined.
+
+(* We now get that [(ab_diagonal + id) o ab_diagonal = (id + ab_diagonal) o ab_diagonal] after passing into the right
+   direct sum via the above isomorphism. *)
+Lemma ab_commute_id_diagonal `{Funext} {A : AbGroup} :
+  (functor_ab_biprod (@ab_diagonal A) grp_homo_id) $o ab_diagonal =
+    ab_biprod_assoc $o (functor_ab_biprod grp_homo_id ab_diagonal) $o ab_diagonal.
+Proof.
+  apply equiv_path_grouphomomorphism.
+  reflexivity.
+Defined.
+
+(* A similar result for the codiagonal. *)
+Lemma ab_commute_id_codiagonal `{Funext} {A : AbGroup} :
+  (@ab_codiagonal A) $o (functor_ab_biprod ab_codiagonal grp_homo_id) $o ab_biprod_assoc =
+    ab_codiagonal $o (functor_ab_biprod grp_homo_id ab_codiagonal).
+Proof.
+  apply equiv_path_grouphomomorphism.
+  intro a. cbn.
+  exact (grp_assoc _ _ _)^.
+Defined.
+
+
+(* A proof of commutativity of the Baer sum.
+   
+   (The rewrite line will be switched out shortly.) *)
 Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A)
   : abses_baer_sum E F = abses_baer_sum F E.
 Proof.
   unfold abses_baer_sum.
   refine (_ @ _).
-  - refine (ap (abses_pullback ab_diagonal) _).
-    rewrite <- ab_codiagonal_swap.  (* Use refine (_ @ _) and ap instead. *)
+  - refine (ap (abses_pullback ab_diagonal) _). 
+    rewrite <- ab_codiagonal_swap. (* Use refine (_ @ _) and ap instead. *)
     refine (_ @ _).
     1: symmetry; rapply abses_pushout_compose.
     refine (_ @ _).
     1: exact (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F))).
     unfold abses_swap_morphism, component3.
-    refine (_ @ _).
-    1: exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
-    
-  -
-Admitted.
+    exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
+  - refine (abses_pullback_compose ab_diagonal direct_sum_swap _).
+Defined.
+
 
