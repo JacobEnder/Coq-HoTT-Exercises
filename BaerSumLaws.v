@@ -1,17 +1,14 @@
-From HoTT Require Import Basics Types Pointed.
-From HoTT Require Import Homotopy.ExactSequence WildCat.
-From HoTT Require Import AbGroups.AbelianGroup AbSES.Core AbSES.Pullback AbSES.Pushout.
-From HoTT Require Import BaerSum AbGroups.AbPushout.
+From HoTT Require Import Basics Types Pointed Homotopy.ExactSequence WildCat
+  AbGroups.AbelianGroup AbSES.Core AbSES.Pullback AbSES.Pushout BaerSum AbGroups.AbPushout.
 
 Require Import AbProjective.
 
-(* Jacob: The swap isomorphism of the direct product of two abelian groups. *)
-
+(** The swap isomorphism of the direct product of two abelian groups. *)
 Definition direct_sum_swap {A B : AbGroup} : (ab_biprod A B) $<~> (ab_biprod B A).
 Proof.
   snrapply Build_GroupIsomorphism'.
   - apply equiv_prod_symm.
-  - intro x.  reflexivity.
+  - intro; reflexivity.
 Defined.
 
 (* Composing group homomorphisms with the identity has no effect. *)
@@ -90,15 +87,7 @@ Proof.
   intro a. cbn. apply abgroup_commutative.
 Defined.
 
-(* Post-composing the diagonal with the swap map has no effect. *)
-Lemma ab_diagonal_swap {A : AbGroup} : (@ab_diagonal A) = direct_sum_swap $o (@ab_diagonal A).
-Proof.
-  reflexivity.
-Defined.
-
-(* Jacob: This is the isomorphism [A + (A + A) <~> (A + A) + A] that associativity relies on in Mac Lane. I get the sense that
-   there is a much shorter way to do this - feel free to rewrite. *)
-
+(* Jacob: This is the isomorphism [A + (A + A) <~> (A + A) + A] that associativity relies on in Mac Lane. I get the sense that there is a much shorter way to do this - feel free to rewrite. *)
 Lemma ab_biprod_assoc {A : AbGroup} : ab_biprod A (ab_biprod A A) $<~> ab_biprod (ab_biprod A A) A.
 Proof.
   - snrapply Build_GroupIsomorphism.
@@ -132,24 +121,18 @@ Proof.
   exact (grp_assoc _ _ _)^.
 Defined.
 
-
-(* A proof of commutativity of the Baer sum.
-   
-   (The rewrite line will be switched out shortly.) *)
+(** The Baer sum is symmetric. *)
 Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A)
   : abses_baer_sum E F = abses_baer_sum F E.
 Proof.
   unfold abses_baer_sum.
   refine (_ @ _).
-  - refine (ap (abses_pullback ab_diagonal) _). 
-    rewrite <- ab_codiagonal_swap. (* Use refine (_ @ _) and ap instead. *)
-    refine (_ @ _).
-    1: symmetry; rapply abses_pushout_compose.
-    refine (_ @ _).
-    1: exact (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F))).
+  - refine (ap (abses_pullback ab_diagonal) _).
+    refine (ap (fun f => abses_pushout f _) ab_codiagonal_swap^ @ _).
+    refine (_^ @ _).
+    1: nrapply abses_pushout_compose.
+    refine (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F)) @ _).
     unfold abses_swap_morphism, component3.
     exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
-  - refine (abses_pullback_compose ab_diagonal direct_sum_swap _).
+  - exact (abses_pullback_compose ab_diagonal direct_sum_swap _).
 Defined.
-
-
