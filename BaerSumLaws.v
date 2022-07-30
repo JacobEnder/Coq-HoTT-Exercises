@@ -87,29 +87,23 @@ Proof.
   intro a. cbn. apply abgroup_commutative.
 Defined.
 
+(* The corresponding result for the diagonal is true definitionally, so it isn't strictly necessary to state it, but we record it anyways. *)
+Definition ab_diagonal_swap {A : AbGroup} : direct_sum_swap $o (@ab_diagonal A) = ab_diagonal
+  := idpath.
+
 (* Jacob: This is the isomorphism [A + (A + A) <~> (A + A) + A] that associativity relies on in Mac Lane. I get the sense that there is a much shorter way to do this - feel free to rewrite. *)
 Lemma ab_biprod_assoc {A : AbGroup} : ab_biprod A (ab_biprod A A) $<~> ab_biprod (ab_biprod A A) A.
 Proof.
-  - snrapply Build_GroupIsomorphism.
-    + snrapply Build_GroupHomomorphism.
-      * intro x. destruct x as [f s]. destruct s as [s t]. exact ((f,s),t).
-      * unfold IsSemiGroupPreserving. reflexivity.
-    + srapply Build_IsEquiv.
-      * intro x. destruct x as [f t]. destruct f as [f s]. exact (f, (s,t)).
-      * intro x. destruct x as [f t]. destruct f as [f s]. reflexivity.
-      * intro x. destruct x as [f s]. destruct s as [s t]. reflexivity.
-      * cbn. reflexivity.
+  - snrapply Build_GroupIsomorphism'.
+    + apply equiv_prod_assoc.
+    + unfold IsSemiGroupPreserving.  reflexivity.
 Defined.
 
-(* We now get that [(ab_diagonal + id) o ab_diagonal = (id + ab_diagonal) o ab_diagonal] after passing into the right
-   direct sum via the above isomorphism. *)
-Lemma ab_commute_id_diagonal `{Funext} {A : AbGroup} :
+(* We now get that [(ab_diagonal + id) o ab_diagonal = (id + ab_diagonal) o ab_diagonal] after passing into the right direct sum via the above isomorphism. *)
+Definition ab_commute_id_diagonal {A : AbGroup} :
   (functor_ab_biprod (@ab_diagonal A) grp_homo_id) $o ab_diagonal =
-    ab_biprod_assoc $o (functor_ab_biprod grp_homo_id ab_diagonal) $o ab_diagonal.
-Proof.
-  apply equiv_path_grouphomomorphism.
-  reflexivity.
-Defined.
+    ab_biprod_assoc $o (functor_ab_biprod grp_homo_id ab_diagonal) $o ab_diagonal
+  := idpath.
 
 (* A similar result for the codiagonal. *)
 Lemma ab_commute_id_codiagonal `{Funext} {A : AbGroup} :
@@ -135,4 +129,5 @@ Proof.
     unfold abses_swap_morphism, component3.
     exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
   - exact (abses_pullback_compose ab_diagonal direct_sum_swap _).
+    (* This uses that [direct_sum_swap $o ab_diagonal] is definitionally equal to [ab_diagonal]. *)
 Defined.
