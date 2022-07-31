@@ -191,15 +191,16 @@ Proof.
   exact (abses_component1_trivial_pullback (abses_morphism_id E) (reflexive_pointwise_paths _ _ _)).
 Defined.
 
-(** The sum of two group homomorphisms can be rewritten as a composite of their direct sums with the diagonal and codiagonal. *)
-Lemma sum_maps_composite `{Funext} {A B : AbGroup} (f g : B $-> A)
-  : ab_homo_add f g = ab_codiagonal $o ((functor_ab_biprod f g) $o ab_diagonal).
+(** Given two abelian group homomorphisms [f] and [g], their pairing [(f, g) : B -> A + A] can be written as a composite. Note that [ab_biprod_corec] is an alias for [grp_prod_corec]. *)
+Lemma ab_biprod_corec_diagonal `{Funext} {A B : AbGroup} (f g : B $-> A)
+  : ab_biprod_corec f g = (functor_ab_biprod f g) $o ab_diagonal.
 Proof.
   apply equiv_path_grouphomomorphism.
   cbn. reflexivity.
 Defined.
 
 (** For any two [E, F : AbSES B A] and [f, g : B' $-> B], there is a morphism [Ef + Fg -> E + F] induced by the universal properties of the pullbacks of E and F, respectively. *)
+(* jdc: There's a lemma here that should be factored out, namely that abses_direct_sum is a functor.  Given f : E -> E' and g : F -> F', you get a morphism f + g : E + F -> E' + F'.  (And note that none of the source and target groups need to match. *)
 Lemma abses_directsum_pullback_morphism `{Univalence}
       {A B B' : AbGroup} {E F : AbSES B A} (f g : B' $-> B)
   : AbSESMorphism (abses_direct_sum (abses_pullback f E) (abses_pullback g F))
@@ -230,19 +231,15 @@ Lemma baer_sum_distributive_pullbacks `{Univalence}
       {A B B' : AbGroup} {E : AbSES B A} (f g : B' $-> B)
   : abses_pullback (ab_homo_add f g) E = abses_baer_sum (abses_pullback f E) (abses_pullback g E).
 Proof.
-  unfold abses_baer_sum.
-  refine (_ @ _).
-  - refine (ap (fun f => abses_pullback f _) (sum_maps_composite _ _) @ _).
-    refine (_^ @ _).
-    1: exact (abses_pullback_compose (functor_ab_biprod f g $o ab_diagonal) ab_codiagonal _).
-    refine (ap (abses_pullback _) _).
-    refine ((abses_pushout_is_pullback (abses_codiagonal E))^).
-  - unfold abses_codiagonal, component1.
-    refine ((abses_reorder_pullback_pushout _  ab_codiagonal _)^ @ _).
-    refine (ap (abses_pushout ab_codiagonal) _ @ _).
-    + refine ((abses_pullback_compose ab_diagonal (functor_ab_biprod f g) _)^ @ _).
-      refine (ap (abses_pullback ab_diagonal) (abses_directsum_distributive_pullbacks f g)).
-    + exact (abses_reorder_pullback_pushout _ ab_codiagonal ab_diagonal).
+  unfold abses_baer_sum, ab_homo_add.
+  refine ((abses_pullback_compose (B1:=ab_biprod B B) _ _ E)^ @ _).
+  refine (ap (abses_pullback _) (abses_pushout_is_pullback (abses_codiagonal E))^ @ _).
+  unfold abses_codiagonal, component1.
+  refine ((abses_reorder_pullback_pushout _ _ _)^ @ _ @ abses_reorder_pullback_pushout _ _ _).
+  refine (ap (abses_pushout0 _) _).
+  refine (ap (fun h => abses_pullback0 h _) (ab_biprod_corec_diagonal _ _) @ _).
+  refine ((abses_pullback_compose _ _ (abses_direct_sum E E))^ @ _).
+  exact (ap (abses_pullback0 _) (abses_directsum_distributive_pullbacks f g)).
 Defined.
 
 (** Adding the zero homomorphism to any other [f : A $-> A] has no effect. *)
