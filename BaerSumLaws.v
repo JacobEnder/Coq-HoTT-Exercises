@@ -175,12 +175,26 @@ Proof.
   cbn. reflexivity.
 Defined.
 
+(** For any two [E, F : AbSES B A] and [f, g : B' $-> B], there is a morphism [Ef + Fg -> E + F] induced by the universal properties of the pullbacks of E and F, respectively. *)
+Lemma abses_directsum_pullback_morphism `{Univalence} {A B B' : AbGroup} {E F : AbSES B A} (f g : B' $-> B) :
+  AbSESMorphism (abses_direct_sum (abses_pullback f E) (abses_pullback g F)) (abses_direct_sum E F).
+Proof.
+  snrapply Build_AbSESMorphism.
+  + exact grp_homo_id.
+  + exact (functor_ab_biprod (component2 (abses_pullback_morphism E f)) (component2 (abses_pullback_morphism F g))).
+  + exact (functor_ab_biprod f g).
+  + cbn; reflexivity.
+  + intro x. cbn. apply path_prod.
+    - exact (right_square (abses_pullback_morphism E f) _).
+    - exact (right_square (abses_pullback_morphism F g) _).  
+Defined.
+
 (** For any two [E, F : AbSES B A] and [f, g : B' $-> B], we have (E + F)(f + g) = Ef + Eg, where + denotes the direct sum. *)
 Lemma abses_directsum_distributive_pullbacks `{Univalence} {A B B' : AbGroup} {E F : AbSES B A} (f g : B' $-> B) :
   abses_pullback (functor_ab_biprod f g) (abses_direct_sum E F) = abses_direct_sum (abses_pullback f E) (abses_pullback g F).
 Proof.
-  
-Admitted.
+  exact (abses_component1_trivial_pullback (abses_directsum_pullback_morphism f g) (reflexive_pointwise_paths _ _ _))^.
+Defined.
 
 (** The analogous result follows for the Baer sum, rather than the direct sum. *)
 Lemma baer_sum_distributive_pullbacks `{Univalence} {A B B' : AbGroup} (E : AbSES B A) (f g : B' $-> B) :
