@@ -177,8 +177,8 @@ Proof.
   exact (abses_component1_trivial_pullback (abses_split_morphism E) (reflexive_pointwise_paths _ _ _)).
 Defined.
 
-(** The trivial morphism from [E] to [E], with each component the identity. I factored this out to make the next proof more concise. *)
-Lemma abses_trivial_morphism `{Univalence} {A B : AbGroup} (E : AbSES B A) : AbSESMorphism E E.
+(** The identity morphism from [E] to [E]. *)
+Lemma abses_morphism_id {A B : AbGroup} (E : AbSES B A) : AbSESMorphism E E.
 Proof.
   snrapply (Build_AbSESMorphism (grp_homo_id) (grp_homo_id) (grp_homo_id)).
   1,2: reflexivity.
@@ -188,7 +188,7 @@ Defined.
 Lemma abses_id_pullback `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : E = abses_pullback (@grp_homo_id B) E.
 Proof.
-  exact (abses_component1_trivial_pullback (abses_trivial_morphism E) (reflexive_pointwise_paths _ _ _)).
+  exact (abses_component1_trivial_pullback (abses_morphism_id E) (reflexive_pointwise_paths _ _ _)).
 Defined.
 
 (** The sum of two group homomorphisms can be rewritten as a composite of their direct sums with the diagonal and codiagonal. *)
