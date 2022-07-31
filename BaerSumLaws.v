@@ -152,17 +152,7 @@ Proof.
     unfold abses_swap_morphism, component3.
     exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
   - exact (abses_pullback_compose ab_diagonal direct_sum_swap _).
-
   (* This uses that [direct_sum_swap $o ab_diagonal] is definitionally equal to [ab_diagonal]. *)
-Defined.
-
-(** The zero homomorphism from [A] to [B]. *)
-Definition zero_hom {A B : Group} : A $-> B.
-Proof.
-  snrapply Build_GroupHomomorphism.
-  + exact (fun x => mon_unit).
-  + unfold IsSemiGroupPreserving. intros a b.
-    exact (grp_unit_l _)^.
 Defined.
 
 (** For every [E : AbSES B A], there is a morphism of the split short exact sequence into [E]. *)
@@ -174,7 +164,7 @@ Proof.
   + snrapply Build_GroupHomomorphism.
     - intro x. destruct x. exact ((inclusion E) fst).
     - intro x. cbn. intro y. apply grp_homo_op. 
-  + exact zero_hom.
+  + exact grp_homo_const.
   + intro x. cbn; reflexivity.
   + intro x. cbn.
     exact (pointed_htpy (iscomplex_abses E) _).
@@ -182,7 +172,7 @@ Defined.
 
 (** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the zero homomorphism [0_B : B $-> B]. *)
 Lemma abses_split_is_composite `{Univalence} {A B : AbGroup} (E : AbSES B A)
-  : point (AbSES B A) = abses_pullback (zero_hom) E.
+  : point (AbSES B A) = abses_pullback (grp_homo_const) E.
 Proof.
   exact (abses_component1_trivial_pullback (abses_split_morphism E) (reflexive_pointwise_paths _ _ _)).
 Defined.
@@ -256,13 +246,13 @@ Proof.
 Defined.
 
 (** Adding the zero homomorphism to any other [f : A $-> A] has no effect. *)
-Lemma ab_homo_add_zero_r `{Funext} {A : AbGroup} (f : A $-> A) : ab_homo_add f zero_hom = f.
+Lemma ab_homo_add_zero_r `{Funext} {A : AbGroup} (f : A $-> A) : ab_homo_add f grp_homo_const = f.
 Proof.
   apply equiv_path_grouphomomorphism.
   intro x. cbn; exact (grp_unit_r _).
 Defined.
 
-Lemma ab_homo_add_zero_l `{Funext} {A : AbGroup} (f : A $-> A) : ab_homo_add zero_hom f = f.
+Lemma ab_homo_add_zero_l `{Funext} {A : AbGroup} (f : A $-> A) : ab_homo_add grp_homo_const f = f.
 Proof.
   apply equiv_path_grouphomomorphism.
   intro x. cbn; exact (grp_unit_l _).
@@ -274,8 +264,8 @@ Lemma baer_sum_unit_r `{Univalence} {A B : AbGroup} (E : AbSES B A)
 Proof.
   refine (ap (abses_baer_sum E) _ @ _).
   + refine (abses_split_is_composite E).
-  + refine (ap (fun F => abses_baer_sum F (abses_pullback zero_hom E)) (abses_id_pullback E) @ _).
-    refine ((baer_sum_distributive_pullbacks grp_homo_id zero_hom)^ @ _).
+  + refine (ap (fun F => abses_baer_sum F (abses_pullback grp_homo_const E)) (abses_id_pullback E) @ _).
+    refine ((baer_sum_distributive_pullbacks grp_homo_id grp_homo_const)^ @ _).
     refine (ap (fun f => abses_pullback f E) (ab_homo_add_zero_r _) @ _).
     symmetry; apply abses_id_pullback.
 Defined.
@@ -304,7 +294,7 @@ Local Notation "- f" := (ab_homo_negate f).
 
 (** For any [f : A $-> B], f + -f = 0. *)
 Lemma ab_negate_homo_cancel `{Funext} {A B : AbGroup} (f : A $-> B)
-  : ab_homo_add f (-f) = zero_hom.
+  : ab_homo_add f (-f) = grp_homo_const.
 Proof.
   apply equiv_path_grouphomomorphism.
   intro x. cbn.
