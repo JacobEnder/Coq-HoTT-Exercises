@@ -170,7 +170,7 @@ Proof.
     exact (pointed_htpy (iscomplex_abses E) _).
 Defined.
 
-(** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the zero homomorphism [0_B : B $-> B]. *)
+(** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the zero homomorphism [B $-> B]. *)
 Lemma abses_split_is_composite `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : point (AbSES B A) = abses_pullback (grp_homo_const) E.
 Proof.
@@ -255,7 +255,7 @@ Proof.
   intro x. exact (grp_unit_l _).
 Defined.
 
-(** The right unit law for the Baer sum says that for all [E : AbSES B A], E + E_0 = E, where E_0 is the split short exact sequence.*)
+(** The right unit law for the Baer sum says that for all [E : AbSES B A], E + E_0 = E, where E_0 is the split short exact sequence. *)
 Lemma baer_sum_unit_r `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_baer_sum E (point (AbSES B A)) = E.
 Proof.
@@ -275,7 +275,7 @@ Proof.
   exact (baer_sum_unit_r _).
 Defined.
 
-(** The negation of a homomorphism [f] of abelian groups. We locally denote this -f. *)
+(** The negation of a homomorphism [f] of abelian groups. We locally denote this [-f]. *)
 Lemma ab_homo_negate {A B : AbGroup} (f : A $-> B) : A $-> B.
 Proof.
   snrapply Build_GroupHomomorphism.
