@@ -12,7 +12,7 @@ Proof.
   - intro; reflexivity.
 Defined.
 
-(* Composing group homomorphisms with the identity has no effect. *)
+(** Composing group homomorphisms with the identity has no effect. *)
 
 (* Commented out for now, since unused:
 Lemma grp_compose_id_r `{Funext} {A B : Group} (f : A $-> B) : grp_homo_compose f grp_homo_id = f.
@@ -38,7 +38,7 @@ Definition abses_pushout_homotopic `{Univalence} {A A' B : AbGroup}
   := equiv_path_data_homotopy _ _ (abses_pushout_homotopic' _ _ h).
 *)
 
-(* Given a morphism [f] of short exact sequences, the pushout of the domain along [f_1] equals the pullback of the codomain along [f_3]. *)
+(** Given a morphism [f] of short exact sequences, the pushout of the domain along [f_1] equals the pullback of the codomain along [f_3]. *)
 Lemma abses_pushout_is_pullback `{Univalence} {A A' B B' : AbGroup}
       {E : AbSES B A} {E' : AbSES B' A'} (f : AbSESMorphism E E')
   : abses_pushout0 (component1 f) E = abses_pullback0 (component3 f) E'.
@@ -47,7 +47,7 @@ Proof.
   refine (abses_component1_trivial_pullback (abses_pushout_morphism_rec f) _); reflexivity.
 Defined.
 
-(* Given a short exact sequence [A -> E -> B] and maps [f : A -> A'], [g : B' -> B], we can change the order of pushing out along [f] and pulling back along [g]. *)
+(** Given a short exact sequence [A -> E -> B] and maps [f : A -> A'], [g : B' -> B], we can change the order of pushing out along [f] and pulling back along [g]. *)
 Lemma abses_reorder_pullback_pushout `{Univalence} {A A' B B' : AbGroup}
       (E : AbSES B A) (f : A $-> A') (g : B' $-> B)
   : abses_pushout0 f (abses_pullback0 g E) = abses_pullback0 g (abses_pushout0 f E).
@@ -58,7 +58,7 @@ Proof.
   refine (abses_pushout_is_pullback (Build_AbSESMorphism f (component2 F) g _ _)); apply F.
 Defined.
 
-(* The following are a series of lemmas that we rely on for properties of the Baer sum. *)
+(** The following are a series of lemmas that we rely on for properties of the Baer sum. *)
 
 (* This should replace the result of the same name in BaerSum.v in the library. The only difference is that F is allowed to involve different groups *)
 (** The pointwise direct sum of two short exact sequences. *)
@@ -99,7 +99,7 @@ Proof.
   all: reflexivity.
 Defined.
 
-(* Precomposing the codiagonal with the swap map has no effect. *)
+(** Precomposing the codiagonal with the swap map has no effect. *)
 Lemma ab_codiagonal_swap `{Funext} {A : AbGroup}
   : (@ab_codiagonal A) $o direct_sum_swap = ab_codiagonal.
 Proof.
@@ -108,12 +108,12 @@ Proof.
 Defined.
 
 
-(* The corresponding result for the diagonal is true definitionally, so it isn't strictly necessary to state it, but we record it anyways. *)
+(** The corresponding result for the diagonal is true definitionally, so it isn't strictly necessary to state it, but we record it anyways. *)
 Definition ab_diagonal_swap {A : AbGroup}
   : direct_sum_swap $o (@ab_diagonal A) = ab_diagonal
   := idpath.
                                         
-(*  This is the isomorphism [A + (A + A) <~> (A + A) + A] that associativity relies on in Mac Lane. *)
+(** This is the isomorphism [A + (A + A) <~> (A + A) + A] that associativity relies on in Mac Lane. *)
 Lemma ab_biprod_assoc {A : AbGroup}
   : ab_biprod A (ab_biprod A A) $<~> ab_biprod (ab_biprod A A) A.
 Proof.
@@ -122,13 +122,13 @@ Proof.
     + unfold IsSemiGroupPreserving. reflexivity.
 Defined.
 
-(* We now get that [(ab_diagonal + id) o ab_diagonal = (id + ab_diagonal) o ab_diagonal] after passing into the right direct sum via the above isomorphism. *)
-Definition ab_commute_id_diagonal `{Funext} {A : AbGroup}
+(** We now get that [(ab_diagonal + id) o ab_diagonal = (id + ab_diagonal) o ab_diagonal] after passing into the right direct sum via the above isomorphism. *)
+Definition ab_commute_id_diagonal {A : AbGroup}
   : (functor_ab_biprod (@ab_diagonal A) grp_homo_id) $o ab_diagonal
     = ab_biprod_assoc $o (functor_ab_biprod grp_homo_id ab_diagonal) $o ab_diagonal
   := idpath.
 
-(* A similar result for the codiagonal. *)
+(** A similar result for the codiagonal. *)
 Lemma ab_commute_id_codiagonal `{Funext} {A : AbGroup}
   : (@ab_codiagonal A) $o (functor_ab_biprod ab_codiagonal grp_homo_id) $o ab_biprod_assoc
     = ab_codiagonal $o (functor_ab_biprod grp_homo_id ab_codiagonal).
@@ -321,7 +321,7 @@ Proof.
   symmetry; apply abses_split_is_composite.
 Defined.
 
-(* The right inverse law follows by commutativity. *)
+(** The right inverse law follows by commutativity. *)
 Lemma baer_sum_inverse_r `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_baer_sum (abses_pullback (-grp_homo_id) E) E = point (AbSES B A).
 Proof.
