@@ -274,4 +274,44 @@ Proof.
   exact (baer_sum_unit_r _).
 Defined.
 
+(** The negation of a homomorphism [f] of abelian groups. We locally denote this -f. *)
+Lemma ab_homo_negate {A B : AbGroup} (f : A $-> B) : A $-> B.
+Proof.
+  snrapply Build_GroupHomomorphism.
+  + intro a; exact (-(f a)).
+  + unfold IsSemiGroupPreserving. intros x y.
+    refine (ap (group_inverse) (grp_homo_op f x y) @ _).
+    refine (grp_inv_op _ _ @ _).
+    apply abgroup_commutative.
+Defined.
 
+(* This notation is just to make the proofs more concise. *)
+Local Notation "- f" := (ab_homo_negate f).
+
+(** For any [f : A $-> B], f + -f = 0. *)
+Lemma ab_negate_homo_cancel `{Funext} {A B : AbGroup} (f : A $-> B) : ab_homo_add f (-f) = zero_hom.
+Proof.
+  apply equiv_path_grouphomomorphism.
+  intro x. cbn.
+  exact (grp_inv_r _).
+Defined.
+
+(** We can now prove the inverse laws for the Baer sum, which state that for any [E : AbSES B A], the pullback of [E] along [-id_B] acts as an additive inverse for [E] with respect to the Baer sum. *)
+Lemma baer_sum_inverse_l `{Univalence} {A B : AbGroup} (E : AbSES B A) :
+  abses_baer_sum E (abses_pullback (-grp_homo_id) E) = point (AbSES B A).
+Proof.
+  refine (ap (fun F => abses_baer_sum F (abses_pullback _ E)) (abses_id_pullback E) @ _).
+  refine ((baer_sum_distributive_pullbacks grp_homo_id (-grp_homo_id))^ @ _).
+  refine (ap (fun f => abses_pullback f _) (ab_negate_homo_cancel _) @ _).
+  symmetry; apply abses_split_is_composite.
+Defined.
+
+(* The right inverse law follows by commutativity. *)
+Lemma baer_sum_inverse_r `{Univalence} {A B : AbGroup} (E : AbSES B A) :
+  abses_baer_sum (abses_pullback (-grp_homo_id) E) E = point (AbSES B A).
+Proof.
+  refine (baer_sum_commutative _ _ @ _).
+  exact (baer_sum_inverse_l _).
+Defined.
+
+ 
