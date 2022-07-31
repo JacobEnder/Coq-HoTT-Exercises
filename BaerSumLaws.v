@@ -157,15 +157,43 @@ Proof.
   snrapply Build_GroupHomomorphism.
   + exact (fun x => mon_unit).
   + unfold IsSemiGroupPreserving. intros a b.
-    exact (grp_unit_l mon_unit)^.
+    exact (grp_unit_l _)^.
+Defined.
+
+(** For every [E : AbSES B A], there is a morphism of the split short exact sequence into [E]. *)
+Lemma abses_split_morphism `{Univalence} {A B : AbGroup} (E : AbSES B A) : AbSESMorphism (point (AbSES B A)) E.
+Proof.
+  snrapply Build_AbSESMorphism.
+  + exact grp_homo_id.
+  + snrapply Build_GroupHomomorphism.
+    - intro x. destruct x. exact ((inclusion E) fst).
+    - intro x. cbn. intro y. apply grp_homo_op. 
+  + exact zero_hom.
+  + intro x. cbn; reflexivity.
+  + intro x. cbn.
+    exact (pointed_htpy (iscomplex_abses E) _).
 Defined.
 
 (** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the 
-    zero homomorphism [0_C : C $-> C]. *)
+    zero homomorphism [0_B : B $-> B]. *)
 Lemma abses_split_is_composite `{Univalence} {A B : AbGroup} (E : AbSES B A) : point (AbSES B A) = abses_pullback (zero_hom) E.
 Proof.
-  apply equiv_path_abses.
-Admitted.
+  exact (abses_component1_trivial_pullback (abses_split_morphism E) (reflexive_pointwise_paths _ _ _)).
+Defined.
+
+(** The trivial morphism from [E] to [E], with each component the identity. I factored this out to make the next proof more
+    concise. *)
+Lemma abses_trivial_morphism `{Univalence} {A B : AbGroup} (E : AbSES B A) : AbSESMorphism E E.
+Proof.
+  snrapply (Build_AbSESMorphism (grp_homo_id) (grp_homo_id) (grp_homo_id)).
+  1,2: reflexivity.
+Defined.
+
+(** For every [E : AbSES B A], there is an identification of [E] with the pullback of [E] along [id_B]. *)
+Lemma abses_id_pullback `{Univalence} {A B : AbGroup} (E : AbSES B A) : E = abses_pullback (@grp_homo_id B) E.
+Proof.
+  exact (abses_component1_trivial_pullback (abses_trivial_morphism E) (reflexive_pointwise_paths _ _ _)).
+Defined.
 
 (** The sum of two group homomorphisms can be rewritten as a composite of their direct sums with the diagonal and codiagonal. *)
 Lemma sum_maps_composite `{Funext} {A B : AbGroup} (f g : B $-> A) :
@@ -197,7 +225,7 @@ Proof.
 Defined.
 
 (** The analogous result follows for the Baer sum, rather than the direct sum. *)
-Lemma baer_sum_distributive_pullbacks `{Univalence} {A B B' : AbGroup} (E : AbSES B A) (f g : B' $-> B) :
+Lemma baer_sum_distributive_pullbacks `{Univalence} {A B B' : AbGroup} {E : AbSES B A} (f g : B' $-> B) :
   abses_pullback (ab_homo_add f g) E = abses_baer_sum (abses_pullback f E) (abses_pullback g E).
 Proof.
   unfold abses_baer_sum.
@@ -213,6 +241,41 @@ Proof.
     + refine ((abses_pullback_compose ab_diagonal (functor_ab_biprod f g) _)^ @ _).
       refine (ap (abses_pullback ab_diagonal) (abses_directsum_distributive_pullbacks f g)).
     + exact (abses_reorder_pullback_pushout _ ab_codiagonal ab_diagonal).
+Defined.
+
+(** Adding the zero homomorphism to any other [f : A $-> A] has no effect. *)
+Lemma ab_homo_add_zero_r `{Funext} {A : AbGroup} (f : A $-> A) : ab_homo_add f zero_hom = f.
+Proof.
+  apply equiv_path_grouphomomorphism.
+  intro x. cbn; exact (grp_unit_r _).
+Defined.
+
+Lemma ab_homo_add_zero_l `{Funext} {A : AbGroup} (f : A $-> A) : ab_homo_add zero_hom f = f.
+Proof.
+  apply equiv_path_grouphomomorphism.
+  intro x. cbn; exact (grp_unit_l _).
+Defined.
+
+(** The right unit law for the Baer sum says that for all [E : AbSES B A], E + E_0 = E, where E_0 is the split short exact sequence.*)
+Lemma baer_sum_unit_r `{Univalence} {A B : AbGroup} (E : AbSES B A) : abses_baer_sum E (point (AbSES B A)) = E.
+Proof.
+  refine (ap (abses_baer_sum E) _ @ _).
+  + refine (abses_split_is_composite E).
+  + refine (ap (fun F => abses_baer_sum F (abses_pullback zero_hom E)) (abses_id_pullback E) @ _).
+    refine ((baer_sum_distributive_pullbacks grp_homo_id zero_hom)^ @ _).
+    refine (ap (fun f => abses_pullback f E) (ab_homo_add_zero_r _) @ _).
+    symmetry; apply abses_id_pullback.
+Defined.
+
+(** The left unit law for the Baer sum is analogous. *)
+Lemma baer_sum_unit_l `{Univalence} {A B : AbGroup} (E : AbSES B A) : abses_baer_sum (point (AbSES B A)) E = E.
+Proof.
+  refine (ap (fun F => abses_baer_sum F E) _ @ _).
+  + refine (abses_split_is_composite E).
+  + refine (ap (fun F => abses_baer_sum (abses_pullback zero_hom E) F) (abses_id_pullback E) @ _).
+    refine ((baer_sum_distributive_pullbacks zero_hom grp_homo_id)^ @ _).
+    refine (ap (fun f => abses_pullback f E) (ab_homo_add_zero_l _) @ _).
+    symmetry; apply abses_id_pullback.
 Defined.
 
 
