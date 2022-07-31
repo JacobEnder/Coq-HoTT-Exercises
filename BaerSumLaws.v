@@ -246,16 +246,16 @@ Proof.
 Defined.
 
 (** Adding the zero homomorphism to any other [f : A $-> A] has no effect. *)
-Lemma ab_homo_add_zero_r `{Funext} {A : AbGroup} (f : A $-> A) : ab_homo_add f grp_homo_const = f.
+Lemma ab_homo_add_zero_r `{Funext} {A B : AbGroup} (f : A $-> B) : ab_homo_add f grp_homo_const = f.
 Proof.
   apply equiv_path_grouphomomorphism.
-  intro x. cbn; exact (grp_unit_r _).
+  intro x. exact (grp_unit_r _).
 Defined.
 
-Lemma ab_homo_add_zero_l `{Funext} {A : AbGroup} (f : A $-> A) : ab_homo_add grp_homo_const f = f.
+Lemma ab_homo_add_zero_l `{Funext} {A B : AbGroup} (f : A $-> B) : ab_homo_add grp_homo_const f = f.
 Proof.
   apply equiv_path_grouphomomorphism.
-  intro x. cbn; exact (grp_unit_l _).
+  intro x. exact (grp_unit_l _).
 Defined.
 
 (** The right unit law for the Baer sum says that for all [E : AbSES B A], E + E_0 = E, where E_0 is the split short exact sequence.*)
