@@ -270,12 +270,8 @@ Defined.
 (** The left unit law for the Baer sum is analogous. *)
 Lemma baer_sum_unit_l `{Univalence} {A B : AbGroup} (E : AbSES B A) : abses_baer_sum (point (AbSES B A)) E = E.
 Proof.
-  refine (ap (fun F => abses_baer_sum F E) _ @ _).
-  + refine (abses_split_is_composite E).
-  + refine (ap (fun F => abses_baer_sum (abses_pullback zero_hom E) F) (abses_id_pullback E) @ _).
-    refine ((baer_sum_distributive_pullbacks zero_hom grp_homo_id)^ @ _).
-    refine (ap (fun f => abses_pullback f E) (ab_homo_add_zero_l _) @ _).
-    symmetry; apply abses_id_pullback.
+  refine (baer_sum_commutative _ _ @ _).
+  exact (baer_sum_unit_r _).
 Defined.
 
 
