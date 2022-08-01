@@ -173,7 +173,7 @@ Defined.
 Lemma abses_split_is_composite `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : point (AbSES B A) = abses_pullback (grp_homo_const) E.
 Proof.
-  exact (abses_component1_trivial_pullback (abses_split_morphism E) (reflexive_pointwise_paths _ _ _)).
+  exact (abses_component1_trivial_pullback (abses_split_morphism E) (fun _ => idpath)).
 Defined.
 
 (** The identity morphism from [E] to [E]. *)
@@ -187,7 +187,7 @@ Defined.
 Lemma abses_id_pullback `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : E = abses_pullback (@grp_homo_id B) E.
 Proof.
-  exact (abses_component1_trivial_pullback (abses_morphism_id E) (reflexive_pointwise_paths _ _ _)).
+  exact (abses_component1_trivial_pullback (abses_morphism_id E) (fun _ => idpath)).
 Defined.
 
 (** Given two abelian group homomorphisms [f] and [g], their pairing [(f, g) : B -> A + A] can be written as a composite. Note that [ab_biprod_corec] is an alias for [grp_prod_corec]. *)
@@ -228,7 +228,7 @@ Lemma abses_directsum_distributive_pullbacks `{Univalence}
     = abses_direct_sum (abses_pullback f E) (abses_pullback g F).
 Proof.
   exact (abses_component1_trivial_pullback (abses_directsum_pullback_morphism f g)
-                                           (reflexive_pointwise_paths _ _ _))^.
+                                           (fun _ => idpath))^.
 Defined.
 
 (** The analogous result follows for the Baer sum, rather than the direct sum. *)
