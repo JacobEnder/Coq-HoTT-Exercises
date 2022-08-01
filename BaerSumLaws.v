@@ -4,7 +4,6 @@ AbGroups.AbelianGroup AbSES.Core AbSES.Pullback AbSES.Pushout BaerSum AbGroups.A
 Require Import AbProjective.
 
 (** The swap isomorphism of the direct product of two abelian groups. *)
-
 Definition direct_sum_swap {A B : AbGroup} : (ab_biprod A B) $<~> (ab_biprod B A).
 Proof.
   snrapply Build_GroupIsomorphism'.
@@ -199,26 +198,27 @@ Proof.
   cbn. reflexivity.
 Defined.
 
-(** For any short exact sequences [E], [E'], [F], [F'] (not necessarily of the same groups), and morphisms [f : E -> E'] and [g : F -> F'] there is a morphism [E + F -> E' + F']. *)
-Lemma abses_directsum_functorial `{Univalence} {A0 A1 A2 A3 B0 B1 B2 B3 : AbGroup} {E : AbSES B0 A0} {E' : AbSES B1 A1}
-  {F : AbSES B2 A2} {F' : AbSES B3 A3} (f : AbSESMorphism E E') (g : AbSESMorphism F F')
+(** For any short exact sequences [E], [E'], [F], [F'], and morphisms [f : E -> E'] and [g : F -> F'] there is a morphism [E + F -> E' + F']. *)
+Lemma functor_abses_directsum `{Univalence} {A A' B B' C C' D D' : AbGroup}
+      {E : AbSES B A} {E' : AbSES B' A'} {F : AbSES D C} {F' : AbSES D' C'}
+      (f : AbSESMorphism E E') (g : AbSESMorphism F F')
   : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum E' F').
 Proof.
   snrapply Build_AbSESMorphism.
   + exact (functor_ab_biprod (component1 f) (component1 g)).
   + exact (functor_ab_biprod (component2 f) (component2 g)).
   + exact (functor_ab_biprod (component3 f) (component3 g)).
-  + intro x. apply path_prod; exact (left_square _ _).
-  + intro x. apply path_prod; exact (right_square _ _).
+  + intro x. apply path_prod; apply left_square.
+  + intro x. apply path_prod; apply right_square.
 Defined.
 
 (** For any two [E, F : AbSES B A] and [f, g : B' $-> B], there is a morphism [Ef + Fg -> E + F] induced by the universal properties of the pullbacks of E and F, respectively. *)
-Lemma abses_directsum_pullback_morphism `{Univalence}
-      {A B B' : AbGroup} {E F : AbSES B A} (f g : B' $-> B)
+Lemma abses_directsum_pullback_morphism `{Univalence} {A B B' C D D' : AbGroup}
+      {E : AbSES B A} {F : AbSES D C} (f : B' $-> B) (g : D' $-> D)
   : AbSESMorphism (abses_direct_sum (abses_pullback f E) (abses_pullback g F))
                   (abses_direct_sum E F).
 Proof.
-  exact (abses_directsum_functorial (abses_pullback_morphism E f) (abses_pullback_morphism F g)).
+  exact (functor_abses_directsum (abses_pullback_morphism E f) (abses_pullback_morphism F g)).
 Defined.
 
 (** For any two [E, F : AbSES B A] and [f, g : B' $-> B], we have (E + F)(f + g) = Ef + Eg, where + denotes the direct sum. *)
