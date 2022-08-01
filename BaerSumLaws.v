@@ -159,14 +159,12 @@ Lemma abses_split_morphism `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : AbSESMorphism (point (AbSES B A)) E.
 Proof.
   snrapply Build_AbSESMorphism.
-  + exact grp_homo_id.
-  + snrapply Build_GroupHomomorphism.
-    - intro x. destruct x. exact ((inclusion E) fst).
-    - intro x. cbn. intro y. apply grp_homo_op. 
-  + exact grp_homo_const.
-  + intro x. cbn; reflexivity.
-  + intro x. cbn.
-    exact (pointed_htpy (iscomplex_abses E) _).
+  - exact grp_homo_id.
+  - exact (inclusion E $o ab_biprod_pr1).
+  - exact grp_homo_const.
+  - reflexivity.
+  - intro x; cbn.
+    apply iscomplex_abses.
 Defined.
 
 (** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the zero homomorphism [B $-> B]. *)
@@ -271,15 +269,8 @@ Definition baer_sum_unit_l `{Univalence} {A B : AbGroup} (E : AbSES B A)
   := baer_sum_commutative _ _ @ baer_sum_unit_r _.
 
 (** The negation of a homomorphism [f] of abelian groups. We locally denote this [-f]. *)
-Lemma ab_homo_negate {A B : AbGroup} (f : A $-> B) : A $-> B.
-Proof.
-  snrapply Build_GroupHomomorphism.
-  + intro a; exact (-(f a)).
-  + unfold IsSemiGroupPreserving. intros x y.
-    refine (ap (group_inverse) (grp_homo_op f x y) @ _).
-    refine (grp_inv_op _ _ @ _).
-    apply abgroup_commutative.
-Defined.
+Definition ab_homo_negate {A B : AbGroup} (f : A $-> B) : A $-> B
+  := grp_homo_compose ab_homo_negation f.
 
 (** This notation is just to make the proofs more concise. *)
 Local Notation "- f" := (ab_homo_negate f).
