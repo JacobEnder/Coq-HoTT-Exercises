@@ -61,17 +61,17 @@ Defined.
 
 (* This should replace the result of the same name in BaerSum.v in the library. The only difference is that F is allowed to involve different groups *)
 (** The pointwise direct sum of two short exact sequences. *)
-Definition abses_direct_sum `{Univalence} {B A B' A' : AbGroup} (E : AbSES B A) (F : AbSES B' A')
+Definition abses_direct_sum `{Funext} {B A B' A' : AbGroup} (E : AbSES B A) (F : AbSES B' A')
   : AbSES (ab_biprod B B') (ab_biprod A A')
   := Build_AbSES (ab_biprod E F)
                  (functor_ab_biprod (inclusion E) (inclusion F))
                  (functor_ab_biprod (projection E) (projection F))
                  (functor_ab_biprod_embedding _ _)
-                 (functor_ab_biprod_sujection _ _)
+                 (functor_ab_biprod_surjection _ _)
                  (ab_biprod_exact _ _ _ _).
 
 (** For any short exact sequence [E], there is a morphism [E -> E + E], where each component is ab_diagonal. *)
-Definition abses_diagonal `{Univalence} {A B : AbGroup} (E : AbSES B A)
+Definition abses_diagonal `{Funext} {A B : AbGroup} (E : AbSES B A)
   : AbSESMorphism E (abses_direct_sum E E).
 Proof.
   snrapply Build_AbSESMorphism.
@@ -80,7 +80,7 @@ Proof.
 Defined.
 
 (** For any short exact sequence [E], there is dually a morphism [E + E -> E], with each component being the codiagonal. *)
-Definition abses_codiagonal `{Univalence} {A B : AbGroup} (E : AbSES B A)
+Definition abses_codiagonal `{Funext} {A B : AbGroup} (E : AbSES B A)
   : AbSESMorphism (abses_direct_sum E E) E.
 Proof.
   snrapply Build_AbSESMorphism.
@@ -89,7 +89,7 @@ Proof.
 Defined.
 
 (** There is always a morphism [E + F -> F + E] of short exact sequences, for any [E : AbSES B A] and [F : AbSES B' A']. *) 
-Definition abses_swap_morphism `{Univalence} {A A' B B' : AbGroup}
+Definition abses_swap_morphism `{Funext} {A A' B B' : AbGroup}
            (E : AbSES B A) (F : AbSES B' A')
   : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum F E).
 Proof.
@@ -143,8 +143,8 @@ Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A)
 Proof.
   unfold abses_baer_sum.
   refine (_ @ _).
-  - refine (ap (abses_pullback ab_diagonal) _). 
-    refine (ap (fun f => abses_pushout f _) ab_codiagonal_swap^ @ _).
+  - refine (ap (abses_pullback0 ab_diagonal) _).
+    refine (ap (fun f => abses_pushout0 f _) ab_codiagonal_swap^ @ _).
     refine (_^ @_).
     1: nrapply abses_pushout_compose.
     refine (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F)) @ _).
@@ -155,7 +155,7 @@ Proof.
 Defined.
 
 (** For every [E : AbSES B A], there is a morphism of the split short exact sequence into [E]. *)
-Lemma abses_split_morphism `{Univalence} {A B : AbGroup} (E : AbSES B A)
+Lemma abses_split_morphism `{Funext} {A B : AbGroup} (E : AbSES B A)
   : AbSESMorphism (point (AbSES B A)) E.
 Proof.
   snrapply Build_AbSESMorphism.
@@ -169,7 +169,7 @@ Defined.
 
 (** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the zero homomorphism [B $-> B]. *)
 Definition abses_split_is_composite `{Univalence} {A B : AbGroup} (E : AbSES B A)
-  : point (AbSES B A) = abses_pullback (grp_homo_const) E
+  : point (AbSES B A) = abses_pullback0 (grp_homo_const) E
   := abses_component1_trivial_pullback (abses_split_morphism E) (fun _ => idpath).
 
 (** The identity morphism from [E] to [E]. *)
@@ -181,7 +181,7 @@ Defined.
 
 (** For every [E : AbSES B A], there is an identification of [E] with the pullback of [E] along [id_B]. *)
 Definition abses_id_pullback `{Univalence} {A B : AbGroup} (E : AbSES B A)
-  : E = abses_pullback (@grp_homo_id B) E
+  : E = abses_pullback0 (@grp_homo_id B) E
   := abses_component1_trivial_pullback (abses_morphism_id E) (fun _ => idpath).
 
 (** Given two abelian group homomorphisms [f] and [g], their pairing [(f, g) : B -> A + A] can be written as a composite. Note that [ab_biprod_corec] is an alias for [grp_prod_corec]. *)
@@ -192,7 +192,7 @@ Proof.
 Defined.
 
 (** For any short exact sequences [E], [E'], [F], [F'], and morphisms [f : E -> E'] and [g : F -> F'] there is a morphism [E + F -> E' + F']. *)
-Lemma functor_abses_directsum `{Univalence} {A A' B B' C C' D D' : AbGroup}
+Lemma functor_abses_directsum `{Funext} {A A' B B' C C' D D' : AbGroup}
       {E : AbSES B A} {E' : AbSES B' A'} {F : AbSES D C} {F' : AbSES D' C'}
       (f : AbSESMorphism E E') (g : AbSESMorphism F F')
   : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum E' F').
@@ -208,28 +208,28 @@ Proof.
 Defined.
 
 (** For any two [E, F : AbSES B A] and [f, g : B' $-> B], there is a morphism [Ef + Fg -> E + F] induced by the universal properties of the pullbacks of E and F, respectively. *)
-Definition abses_directsum_pullback_morphism `{Univalence} {A B B' C D D' : AbGroup}
+Definition abses_directsum_pullback_morphism `{Funext} {A B B' C D D' : AbGroup}
       {E : AbSES B A} {F : AbSES D C} (f : B' $-> B) (g : D' $-> D)
-  : AbSESMorphism (abses_direct_sum (abses_pullback f E) (abses_pullback g F))
+  : AbSESMorphism (abses_direct_sum (abses_pullback0 f E) (abses_pullback0 g F))
                   (abses_direct_sum E F)
   := functor_abses_directsum (abses_pullback_morphism E f) (abses_pullback_morphism F g).
 
 (** For any two [E, F : AbSES B A] and [f, g : B' $-> B], we have (E + F)(f + g) = Ef + Eg, where + denotes the direct sum. *)
 Definition abses_directsum_distributive_pullbacks `{Univalence} {A B B' : AbGroup}
   {E F : AbSES B A} (f g : B' $-> B)
-  : abses_pullback (functor_ab_biprod f g) (abses_direct_sum E F)
-    = abses_direct_sum (abses_pullback f E) (abses_pullback g F)
+  : abses_pullback0 (functor_ab_biprod f g) (abses_direct_sum E F)
+    = abses_direct_sum (abses_pullback0 f E) (abses_pullback0 g F)
   := (abses_component1_trivial_pullback (abses_directsum_pullback_morphism f g)
         (fun _ => idpath))^.
 
 (** The analogous result follows for the Baer sum, rather than the direct sum. *)
 Lemma baer_sum_distributive_pullbacks `{Univalence} {A B B' : AbGroup}
   {E : AbSES B A} (f g : B' $-> B)
-  : abses_pullback (ab_homo_add f g) E = abses_baer_sum (abses_pullback f E) (abses_pullback g E).
+  : abses_pullback0 (ab_homo_add f g) E = abses_baer_sum (abses_pullback0 f E) (abses_pullback0 g E).
 Proof.
   unfold abses_baer_sum, ab_homo_add.
   refine ((abses_pullback_compose (B1:=ab_biprod B B) _ _ E)^ @ _).
-  refine (ap (abses_pullback _) (abses_pushout_is_pullback (abses_codiagonal E))^ @ _).
+  refine (ap (abses_pullback0 _) (abses_pushout_is_pullback (abses_codiagonal E))^ @ _).
   unfold abses_codiagonal, component1.
   refine ((abses_reorder_pullback_pushout _ _ _)^ @ _ @ abses_reorder_pullback_pushout _ _ _).
   refine (ap (abses_pushout0 _) _).
@@ -257,9 +257,9 @@ Lemma baer_sum_unit_r `{Univalence} {A B : AbGroup} (E : AbSES B A)
 Proof.
   refine (ap (abses_baer_sum E) _ @ _).
   - exact (abses_split_is_composite E).
-  - refine (ap (fun F => abses_baer_sum F (abses_pullback grp_homo_const E)) (abses_id_pullback E) @ _).
+  - refine (ap (fun F => abses_baer_sum F (abses_pullback0 grp_homo_const E)) (abses_id_pullback E) @ _).
     refine ((baer_sum_distributive_pullbacks grp_homo_id grp_homo_const)^ @ _).
-    refine (ap (fun f => abses_pullback f E) (ab_homo_add_zero_r _) @ _).
+    refine (ap (fun f => abses_pullback0 f E) (ab_homo_add_zero_r _) @ _).
     symmetry; apply abses_id_pullback.
 Defined.
 
@@ -269,6 +269,7 @@ Definition baer_sum_unit_l `{Univalence} {A B : AbGroup} (E : AbSES B A)
   := baer_sum_commutative _ _ @ baer_sum_unit_r _.
 
 (** The negation of a homomorphism [f] of abelian groups. We locally denote this [-f]. *)
+(* This can also be used in AbPushout.v in one spot. *)
 Definition ab_homo_negate {A B : AbGroup} (f : A $-> B) : A $-> B
   := grp_homo_compose ab_homo_negation f.
 
@@ -285,16 +286,16 @@ Defined.
 
 (** We can now prove the inverse laws for the Baer sum, which state that for any [E : AbSES B A], the pullback of [E] along [-id_B] acts as an additive inverse for [E] with respect to the Baer sum. *)
 Lemma baer_sum_inverse_l `{Univalence} {A B : AbGroup} (E : AbSES B A)
-  : abses_baer_sum E (abses_pullback (-grp_homo_id) E) = point (AbSES B A).
+  : abses_baer_sum E (abses_pullback0 (-grp_homo_id) E) = point (AbSES B A).
 Proof.
-  refine (ap (fun F => abses_baer_sum F (abses_pullback _ E)) (abses_id_pullback E) @ _).
+  refine (ap (fun F => abses_baer_sum F (abses_pullback0 _ E)) (abses_id_pullback E) @ _).
   refine ((baer_sum_distributive_pullbacks grp_homo_id (-grp_homo_id))^ @ _).
-  refine (ap (fun f => abses_pullback f _) (ab_negate_homo_cancel _) @ _).
+  refine (ap (fun f => abses_pullback0 f _) (ab_negate_homo_cancel _) @ _).
   symmetry; apply abses_split_is_composite.
 Defined.
 
 (** The right inverse law follows by commutativity. *)
 Definition baer_sum_inverse_r `{Univalence} {A B : AbGroup} (E : AbSES B A)
-  : abses_baer_sum (abses_pullback (-grp_homo_id) E) E = point (AbSES B A)
+  : abses_baer_sum (abses_pullback0 (-grp_homo_id) E) E = point (AbSES B A)
   := baer_sum_commutative _ _ @ baer_sum_inverse_l _.
 
