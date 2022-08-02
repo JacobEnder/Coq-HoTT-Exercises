@@ -59,17 +59,6 @@ Defined.
 
 (** The following are a series of lemmas that we rely on for properties of the Baer sum. *)
 
-(* This should replace the result of the same name in BaerSum.v in the library. The only difference is that F is allowed to involve different groups *)
-(** The pointwise direct sum of two short exact sequences. *)
-Definition abses_direct_sum `{Funext} {B A B' A' : AbGroup} (E : AbSES B A) (F : AbSES B' A')
-  : AbSES (ab_biprod B B') (ab_biprod A A')
-  := Build_AbSES (ab_biprod E F)
-                 (functor_ab_biprod (inclusion E) (inclusion F))
-                 (functor_ab_biprod (projection E) (projection F))
-                 (functor_ab_biprod_embedding _ _)
-                 (functor_ab_biprod_surjection _ _)
-                 (ab_biprod_exact _ _ _ _).
-
 (** For any short exact sequence [E], there is a morphism [E -> E + E], where each component is ab_diagonal. *)
 Definition abses_diagonal `{Funext} {A B : AbGroup} (E : AbSES B A)
   : AbSESMorphism E (abses_direct_sum E E).
