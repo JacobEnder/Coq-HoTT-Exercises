@@ -13,14 +13,13 @@ Defined.
 
 (** Composing group homomorphisms with the identity has no effect. *)
 
-(* Commented out for now, since unused: *)
+(* Commented out for now, since unused:
 Definition grp_compose_id_r `{Funext} {A B : Group} (f : A $-> B) : f $o grp_homo_id == f
   := fun _ => idpath.
 
 Definition  grp_compose_id_l `{Funext} {A B : Group} (f : A $-> B) : grp_homo_compose grp_homo_id f == f
-  := fun _ => idpath.                                                                                                         
+  := fun _ => idpath.
 
-(*
 Lemma abses_pushout_homotopic' `{Univalence} {A A' B : AbGroup} (f f' : A $-> A') (h : f == f')
   : abses_pushout0 (B:=B) f $=> abses_pushout0 f'.
 Proof.
@@ -286,52 +285,70 @@ Definition baer_sum_inverse_r `{Univalence} {A B : AbGroup} (E : AbSES B A)
   := baer_sum_commutative _ _ @ baer_sum_inverse_l _.
 
 (** Given [E : AbSES B A'] and [F : AbSES B A] and a morphism [f : E -> F], the pushout of [E] along [f_1] is [F] if [f_3] is homotopic to [id_B]. *)
-Lemma abses_component3_trivial_pushout' `{Univalence} {A A' B : AbGroup} {E : AbSES B A'} {F : AbSES B A}
-  (f : AbSESMorphism E F) (h : component3 f == grp_homo_id)
+Lemma abses_component3_trivial_pushout' `{Univalence}
+      {A A' B : AbGroup} {E : AbSES B A'} {F : AbSES B A}
+      (f : AbSESMorphism E F) (h : component3 f == grp_homo_id)
   : abses_pushout (component1 f) E $== F.
 Proof.
   pose (g := abses_pushout_morphism_rec f).
   nrapply abses_path_data_to_iso.
   exists (component2 g); split.
-  + intro x. 
-    refine (_ @ grp_compose_id_r (inclusion F) x).
+  + intro x.
     exact (left_square g _)^.
   + intro x.
-    refine ((grp_compose_id_l _ x)^ @ _).
-    exact ((right_square g _) @ ap _ (h _))^.
+    exact ((right_square g _) @ h _)^.
 Defined.
 
 (** Switching from homotopy to equality. *)
-Definition abses_component3_trivial_pushout `{Univalence} {A A' B : AbGroup} {E : AbSES B A'} {F : AbSES B A}
-  (f : AbSESMorphism E F) (h : component3 f == grp_homo_id)
+Definition abses_component3_trivial_pushout `{Univalence}
+           {A A' B : AbGroup} {E : AbSES B A'} {F : AbSES B A}
+           (f : AbSESMorphism E F) (h : component3 f == grp_homo_id)
   : abses_pushout (component1 f) E = F
   := equiv_path_abses_iso (abses_component3_trivial_pushout' f h).
 
 (** Given short exact sequences [E] and [F], not necessarily of the same groups, and homomorphisms [f : A' $-> A] and [g : D' $-> D], there is a morphism [E + F -> fE + gF] induced by the universal properties of the pushouts of [E] and [F] *)
-Definition abses_directsum_pushout_morphism `{Univalence} {A A' B C D D' : AbGroup} {E : AbSES B A'} {F : AbSES C D'}
-  (f : A' $-> A) (g : D' $-> D) : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum (abses_pushout f E) (abses_pushout g F))
-  :=  (functor_abses_directsum (abses_pushout_morphism E f) (abses_pushout_morphism F g)).
+Definition abses_directsum_pushout_morphism `{Univalence}
+           {A A' B C D D' : AbGroup} {E : AbSES B A'} {F : AbSES C D'}
+           (f : A' $-> A) (g : D' $-> D)
+  : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum (abses_pushout f E) (abses_pushout g F))
+  := functor_abses_directsum (abses_pushout_morphism E f) (abses_pushout_morphism F g).
 
 (** For any two [E, F : AbSES B A'] and [f, g : A' $-> A], we have (f+g)(E+F) = fE + gF, where + denotes the direct sum. *)
-Definition abses_directsum_distributive_pushouts `{Univalence} {A A' B : AbGroup} {E F : AbSES B A'} (f g : A' $-> A)
-  : abses_pushout (functor_ab_biprod f g) (abses_direct_sum E F) = abses_direct_sum (abses_pushout f E) (abses_pushout g F)
-  := (abses_component3_trivial_pushout (abses_directsum_pushout_morphism f g) (fun _ => idpath)).
+Definition abses_directsum_distributive_pushouts `{Univalence}
+           {A A' B : AbGroup} {E F : AbSES B A'} (f g : A' $-> A)
+  : abses_pushout (functor_ab_biprod f g) (abses_direct_sum E F)
+    = abses_direct_sum (abses_pushout f E) (abses_pushout g F)
+  := abses_component3_trivial_pushout (abses_directsum_pushout_morphism f g) (fun _ => idpath).
 
 (** The analogous result for the Baer sum. *)
-Lemma baer_sum_distributive_pushouts `{Univalence} {A A' B : AbGroup} {E : AbSES B A'} (f g : A' $-> A)
+Lemma baer_sum_distributive_pushouts `{Univalence}
+      {A A' B : AbGroup} {E : AbSES B A'} (f g : A' $-> A)
   : abses_pushout (ab_homo_add f g) E = abses_baer_sum (abses_pushout f E) (abses_pushout g E).
 Proof.
   unfold abses_baer_sum, ab_homo_add.
   refine ((abses_pushout_compose (A1 := ab_biprod A A) _ _ E)^ @ _).
-  refine (ap (abses_pushout ab_codiagonal) _ @ _).
-  - refine (ap (fun f => abses_pushout f E) (ab_biprod_corec_diagonal f g) @ _).
-    refine ((abses_pushout_compose _ _ E)^ @ _).
-    refine (ap (abses_pushout _) (abses_pushout_is_pullback (abses_diagonal E)) @ _).
-    refine (abses_reorder_pullback_pushout _ _ _ @ _).
-    refine (ap (abses_pullback0 _) (abses_directsum_distributive_pushouts f g)).
-  - exact (abses_reorder_pullback_pushout _ ab_codiagonal ab_diagonal).    
+  refine (_ @ abses_reorder_pullback_pushout _ ab_codiagonal ab_diagonal).
+  refine (ap (abses_pushout ab_codiagonal) _).
+  refine (ap (fun f => abses_pushout f E) (ab_biprod_corec_diagonal f g) @ _).
+  refine ((abses_pushout_compose _ _ E)^ @ _).
+  refine (ap (abses_pushout _) (abses_pushout_is_pullback (abses_diagonal E)) @ _).
+  refine (abses_reorder_pullback_pushout _ _ _ @ _).
+  exact (ap (abses_pullback0 _) (abses_directsum_distributive_pushouts f g)).
 Defined.
 
+(*
+Plan:
 
+- Use pushout0 and pullback0, since we don't need pointedness, and pullback0 avoids Univalence.
 
-                                                                             
+- Define "trinary baer sum" using direct of three extensions as
+  pullback tridiagonal (pushout tricodiagonal (directsum E (directsum F G))).
+- Lemma: baersum E (baersum F G) = trinary baer sum E F G.
+- Lemma: trinary baer sum E F G = trinary baer sum G F E.
+- Prop: baersum E (baersum F G) = baersum G (baersum F E).
+- Thm: baersum associative.
+
+- Show that Ext is a group.
+
+- Do the hexagon and pentagon laws hold for AbSES?  Might be quite challenging.
+*)
