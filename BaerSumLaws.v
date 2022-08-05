@@ -28,7 +28,7 @@ Proof.
 Defined.
 
 Definition abses_pushout_homotopic `{Univalence} {A A' B : AbGroup}
-  (f f' : A $-> A') (h : f == f')
+           (f f' : A $-> A') (h : f == f')
   : abses_pushout0 (B:=B) f == abses_pushout0 f'
   := equiv_path_data_homotopy _ _ (abses_pushout_homotopic' _ _ h).
 *)
@@ -39,7 +39,7 @@ Lemma abses_pushout_is_pullback `{Univalence} {A A' B B' : AbGroup}
   : abses_pushout0 (component1 f) E = abses_pullback0 (component3 f) E'.
 Proof.
   (* The morphism [f : E -> E'] factors as [E -> f_1 E -> E'], where the first map is the map defining the pushout [f_1 E] and the second map is denoted [abses_pushout_morphism_rec f] below.  This second map is the identity on the first component, so it presents its domain as the pullback of [E'] along [f_3]. *)
-  refine (abses_component1_trivial_pullback (abses_pushout_morphism_rec f) _); reflexivity.
+  refine (abses_component1_trivial_pullback (abses_pushout_morphism_rec f) (fun _ => idpath)).
 Defined.
 
 (** Given a short exact sequence [A -> E -> B] and maps [f : A -> A'], [g : B' -> B], we can change the order of pushing out along [f] and pulling back along [g]. *)
@@ -153,7 +153,7 @@ Proof.
 Defined.
 
 (** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the zero homomorphism [B $-> B]. *)
-Definition abses_split_is_composite `{Univalence} {A B : AbGroup} (E : AbSES B A)
+Definition abses_split_pullback_const `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : point (AbSES B A) = abses_pullback0 (grp_homo_const) E
   := abses_component1_trivial_pullback (abses_split_morphism E) (fun _ => idpath).
 
@@ -194,14 +194,14 @@ Defined.
 
 (** For any two [E, F : AbSES B A] and [f, g : B' $-> B], there is a morphism [Ef + Fg -> E + F] induced by the universal properties of the pullbacks of E and F, respectively. *)
 Definition abses_directsum_pullback_morphism `{Funext} {A B B' C D D' : AbGroup}
-      {E : AbSES B A} {F : AbSES D C} (f : B' $-> B) (g : D' $-> D)
+           {E : AbSES B A} {F : AbSES D C} (f : B' $-> B) (g : D' $-> D)
   : AbSESMorphism (abses_direct_sum (abses_pullback0 f E) (abses_pullback0 g F))
                   (abses_direct_sum E F)
   := functor_abses_directsum (abses_pullback_morphism E f) (abses_pullback_morphism F g).
 
 (** For any two [E, F : AbSES B A] and [f, g : B' $-> B], we have (E + F)(f + g) = Ef + Eg, where + denotes the direct sum. *)
 Definition abses_directsum_distributive_pullbacks `{Univalence} {A B B' : AbGroup}
-  {E F : AbSES B A} (f g : B' $-> B)
+           {E F : AbSES B A} (f g : B' $-> B)
   : abses_pullback0 (functor_ab_biprod f g) (abses_direct_sum E F)
     = abses_direct_sum (abses_pullback0 f E) (abses_pullback0 g F)
   := (abses_component1_trivial_pullback (abses_directsum_pullback_morphism f g)
@@ -241,7 +241,7 @@ Lemma baer_sum_unit_r `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_baer_sum E (point (AbSES B A)) = E.
 Proof.
   refine (ap (abses_baer_sum E) _ @ _).
-  - exact (abses_split_is_composite E).
+  - exact (abses_split_pullback_const E).
   - refine (ap (fun F => abses_baer_sum F (abses_pullback0 grp_homo_const E)) (abses_id_pullback E) @ _).
     refine ((baer_sum_distributive_pullbacks grp_homo_id grp_homo_const)^ @ _).
     refine (ap (fun f => abses_pullback0 f E) (ab_homo_add_zero_r _) @ _).
@@ -276,7 +276,7 @@ Proof.
   refine (ap (fun F => abses_baer_sum F (abses_pullback0 _ E)) (abses_id_pullback E) @ _).
   refine ((baer_sum_distributive_pullbacks grp_homo_id (-grp_homo_id))^ @ _).
   refine (ap (fun f => abses_pullback0 f _) (ab_negate_homo_cancel _) @ _).
-  symmetry; apply abses_split_is_composite.
+  symmetry; apply abses_split_pullback_const.
 Defined.
 
 (** The right inverse law follows by commutativity. *)
@@ -299,21 +299,21 @@ Proof.
     exact ((right_square g _) @ h _)^.
 Defined.
 
-(** Switching from homotopy to equality. *)
+(** A version with equality instead of path data. *)
 Definition abses_component3_trivial_pushout `{Univalence}
            {A A' B : AbGroup} {E : AbSES B A'} {F : AbSES B A}
            (f : AbSESMorphism E F) (h : component3 f == grp_homo_id)
   : abses_pushout (component1 f) E = F
   := equiv_path_abses_iso (abses_component3_trivial_pushout' f h).
 
-(** Given short exact sequences [E] and [F], not necessarily of the same groups, and homomorphisms [f : A' $-> A] and [g : D' $-> D], there is a morphism [E + F -> fE + gF] induced by the universal properties of the pushouts of [E] and [F] *)
+(** Given short exact sequences [E] and [F] and homomorphisms [f : A' $-> A] and [g : D' $-> D], there is a morphism [E + F -> fE + gF] induced by the universal properties of the pushouts of [E] and [F]. *)
 Definition abses_directsum_pushout_morphism `{Univalence}
            {A A' B C D D' : AbGroup} {E : AbSES B A'} {F : AbSES C D'}
            (f : A' $-> A) (g : D' $-> D)
   : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum (abses_pushout f E) (abses_pushout g F))
   := functor_abses_directsum (abses_pushout_morphism E f) (abses_pushout_morphism F g).
 
-(** For any two [E, F : AbSES B A'] and [f, g : A' $-> A], we have (f+g)(E+F) = fE + gF, where + denotes the direct sum. *)
+(** For [E, F : AbSES B A'] and [f, g : A' $-> A], we have (f+g)(E+F) = fE + gF, where + denotes the direct sum. *)
 Definition abses_directsum_distributive_pushouts `{Univalence}
            {A A' B : AbGroup} {E F : AbSES B A'} (f g : A' $-> A)
   : abses_pushout (functor_ab_biprod f g) (abses_direct_sum E F)
