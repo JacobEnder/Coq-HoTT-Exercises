@@ -39,7 +39,7 @@ Lemma abses_pushout_is_pullback `{Univalence} {A A' B B' : AbGroup}
   : abses_pushout0 (component1 f) E = abses_pullback0 (component3 f) E'.
 Proof.
   (* The morphism [f : E -> E'] factors as [E -> f_1 E -> E'], where the first map is the map defining the pushout [f_1 E] and the second map is denoted [abses_pushout_morphism_rec f] below.  This second map is the identity on the first component, so it presents its domain as the pullback of [E'] along [f_3]. *)
-  refine (abses_component1_trivial_pullback (abses_pushout_morphism_rec f) (fun _ => idpath)).
+  refine (abses_component1_id_pullback (abses_pushout_morphism_rec f) (fun _ => idpath)).
 Defined.
 
 (** Given a short exact sequence [A -> E -> B] and maps [f : A -> A'], [g : B' -> B], we can change the order of pushing out along [f] and pulling back along [g]. *)
@@ -155,7 +155,7 @@ Defined.
 (** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the zero homomorphism [B $-> B]. *)
 Definition abses_split_pullback_const `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : point (AbSES B A) = abses_pullback0 (grp_homo_const) E
-  := abses_component1_trivial_pullback (abses_split_morphism E) (fun _ => idpath).
+  := abses_component1_id_pullback (abses_split_morphism E) (fun _ => idpath).
 
 (** The identity morphism from [E] to [E]. *)
 Lemma abses_morphism_id {A B : AbGroup} (E : AbSES B A) : AbSESMorphism E E.
@@ -167,7 +167,7 @@ Defined.
 (** For every [E : AbSES B A], there is an identification of [E] with the pullback of [E] along [id_B]. *)
 Definition abses_id_pullback `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : E = abses_pullback0 (@grp_homo_id B) E
-  := abses_component1_trivial_pullback (abses_morphism_id E) (fun _ => idpath).
+  := abses_component1_id_pullback (abses_morphism_id E) (fun _ => idpath).
 
 (** Given two abelian group homomorphisms [f] and [g], their pairing [(f, g) : B -> A + A] can be written as a composite. Note that [ab_biprod_corec] is an alias for [grp_prod_corec]. *)
 Lemma ab_biprod_corec_diagonal `{Funext} {A B : AbGroup} (f g : B $-> A)
@@ -204,7 +204,7 @@ Definition abses_directsum_distributive_pullbacks `{Univalence} {A B B' : AbGrou
            {E F : AbSES B A} (f g : B' $-> B)
   : abses_pullback0 (functor_ab_biprod f g) (abses_direct_sum E F)
     = abses_direct_sum (abses_pullback0 f E) (abses_pullback0 g F)
-  := (abses_component1_trivial_pullback (abses_directsum_pullback_morphism f g)
+  := (abses_component1_id_pullback (abses_directsum_pullback_morphism f g)
         (fun _ => idpath))^.
 
 (** The analogous result follows for the Baer sum, rather than the direct sum. *)
@@ -285,7 +285,7 @@ Definition baer_sum_inverse_r `{Univalence} {A B : AbGroup} (E : AbSES B A)
   := baer_sum_commutative _ _ @ baer_sum_inverse_l _.
 
 (** Given [E : AbSES B A'] and [F : AbSES B A] and a morphism [f : E -> F], the pushout of [E] along [f_1] is [F] if [f_3] is homotopic to [id_B]. *)
-Lemma abses_component3_trivial_pushout' `{Univalence}
+Lemma abses_component3_id_pushout' `{Univalence}
       {A A' B : AbGroup} {E : AbSES B A'} {F : AbSES B A}
       (f : AbSESMorphism E F) (h : component3 f == grp_homo_id)
   : abses_pushout (component1 f) E $== F.
@@ -300,11 +300,11 @@ Proof.
 Defined.
 
 (** A version with equality instead of path data. *)
-Definition abses_component3_trivial_pushout `{Univalence}
+Definition abses_component3_id_pushout `{Univalence}
            {A A' B : AbGroup} {E : AbSES B A'} {F : AbSES B A}
            (f : AbSESMorphism E F) (h : component3 f == grp_homo_id)
   : abses_pushout (component1 f) E = F
-  := equiv_path_abses_iso (abses_component3_trivial_pushout' f h).
+  := equiv_path_abses_iso (abses_component3_id_pushout' f h).
 
 (** Given short exact sequences [E] and [F] and homomorphisms [f : A' $-> A] and [g : D' $-> D], there is a morphism [E + F -> fE + gF] induced by the universal properties of the pushouts of [E] and [F]. *)
 Definition abses_directsum_pushout_morphism `{Univalence}
@@ -318,7 +318,7 @@ Definition abses_directsum_distributive_pushouts `{Univalence}
            {A A' B : AbGroup} {E F : AbSES B A'} (f g : A' $-> A)
   : abses_pushout (functor_ab_biprod f g) (abses_direct_sum E F)
     = abses_direct_sum (abses_pushout f E) (abses_pushout g F)
-  := abses_component3_trivial_pushout (abses_directsum_pushout_morphism f g) (fun _ => idpath).
+  := abses_component3_id_pushout (abses_directsum_pushout_morphism f g) (fun _ => idpath).
 
 (** The analogous result for the Baer sum. *)
 Lemma baer_sum_distributive_pushouts `{Univalence}
