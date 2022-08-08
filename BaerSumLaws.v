@@ -208,7 +208,7 @@ Definition abses_directsum_distributive_pullbacks `{Univalence} {A B B' C D D' :
         (fun _ => idpath))^.
 
 (** The analogous result follows for the Baer sum, rather than the direct sum. *)
-Lemma baer_sum_distributive_pullbacks `{Univalence} {A B B': AbGroup}
+Lemma baer_sum_distributive_pullbacks `{Univalence} {A B B' : AbGroup}
   {E : AbSES B A} (f g : B' $-> B)
   : abses_pullback (ab_homo_add f g) E = abses_baer_sum (abses_pullback f E) (abses_pullback g E).
 Proof.
@@ -306,10 +306,9 @@ Definition abses_pushout_component3_id `{Univalence}
   : abses_pushout (component1 f) E = F
   := equiv_path_abses_iso (abses_pushout_component3_id' f h).
 
-Lemma abses_pushout_id `{Univalence} {A B : AbGroup} (E : AbSES B A) : abses_pushout (@grp_homo_id A) E = E.
-Proof.
-  exact (abses_pushout_component3_id (abses_morphism_id E) (fun _ => idpath)).
-Defined.
+Definition abses_pushout_id `{Univalence} {A B : AbGroup} (E : AbSES B A)
+  : abses_pushout (@grp_homo_id A) E = E
+  := abses_pushout_component3_id (abses_morphism_id E) (fun _ => idpath).
 
 (** Given short exact sequences [E] and [F] and homomorphisms [f : A' $-> A] and [g : D' $-> D], there is a morphism [E + F -> fE + gF] induced by the universal properties of the pushouts of [E] and [F]. *)
 Definition abses_directsum_pushout_morphism `{Univalence}
@@ -349,44 +348,49 @@ Definition ab_tricodiagonal {A : AbGroup} : ab_biprod (ab_biprod A A) A $-> A
   := ab_codiagonal $o (functor_ab_biprod ab_codiagonal grp_homo_id).
 
 (** The trinary Baer sum of three short exact sequences. *)
-Definition abses_trinary_baer_sum `{Univalence} {A B : AbGroup} (E F G : AbSES B A) : AbSES B A
-  := abses_pullback ab_tridiagonal (abses_pushout ab_tricodiagonal (abses_direct_sum (abses_direct_sum E F) G)).
+Definition abses_trinary_baer_sum `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
+  : AbSES B A
+  := abses_pullback ab_tridiagonal
+                   (abses_pushout ab_tricodiagonal
+                                  (abses_direct_sum (abses_direct_sum E F) G)).
 
 (** For [E, F, G : AbSES B A], the Baer sum of [E], [F] and [G] (associated left) is equal to the trinary Baer sum of [E], [F] and [G]. *)
 Lemma baer_sum_is_trinary `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
   : abses_baer_sum (abses_baer_sum E F) G = abses_trinary_baer_sum E F G.
 Proof.
   unfold abses_baer_sum, abses_trinary_baer_sum, ab_tridiagonal, ab_tricodiagonal.
-  refine (ap (abses_pullback _ o abses_pushout _) _ @ _).
-  - refine (ap (abses_direct_sum _) (abses_pullback_id G)^ @ _).
-    refine ((abses_directsum_distributive_pullbacks _ _)^ @ _).
+  refine (ap (abses_pullback _ o abses_pushout _) _^ @ _).
+  - refine (_ @ ap (abses_direct_sum _) (abses_pullback_id G)).
+    refine (_ @ abses_directsum_distributive_pullbacks _ _).
     refine (ap (abses_pullback _) _).
-    refine ((ap (abses_direct_sum _) (abses_pushout_id G))^ @ _).
-    exact ((abses_directsum_distributive_pushouts _ _)^).
-  - refine (ap (abses_pullback _) (abses_reorder_pullback_pushout _ _ _) @ _). 
+    refine (_ @ ap (abses_direct_sum _) (abses_pushout_id G)).
+    apply abses_directsum_distributive_pushouts.
+  - refine (ap (abses_pullback _) (abses_reorder_pullback_pushout _ _ _) @ _).
     refine (abses_pullback_compose _ _ _ @ _).
-    apply ap.
-    exact (abses_pushout_compose _ _ _).
+    refine (ap (abses_pullback _) _).
+    apply abses_pushout_compose.
 Defined.
 
 (** For any three abelian groups [A], [B] and [C], we have (A + B) + C <~> (C + B) + A, where + is the direct sum. *)
-Lemma ab_biprod_twist {A B C : AbGroup} : ab_biprod (ab_biprod A B) C $<~> ab_biprod (ab_biprod C B) A.
+Lemma ab_biprod_twist {A B C : AbGroup}
+  : ab_biprod (ab_biprod A B) C $<~> ab_biprod (ab_biprod C B) A.
 Proof.
   snrapply Build_GroupIsomorphism.
   - snrapply Build_GroupHomomorphism.
-    + intro x. destruct x as [x c]. destruct x as [a b].
+    + intros [[a b] c].
       exact ((c,b),a).
-    +  unfold IsSemiGroupPreserving. intros x y; reflexivity.
+    + unfold IsSemiGroupPreserving. reflexivity.
   - snrapply isequiv_adjointify.
-    + intro x. destruct x as [x a]. destruct x as [c b].
+    + intros [[c b] a].
       exact ((a,b),c).
-    + intros; reflexivity.
-    + intros; reflexivity.
+    + reflexivity.
+    + reflexivity.
 Defined.
 
 (** For [E, F, G : AbSES B A], there is a morphism [(E + F) + G -> (G + F) + E] induced by the above map. *)
-Lemma abses_twist_directsum `{Univalence} {A B : AbGroup} (E F G : AbSES B A) 
-  : AbSESMorphism (abses_direct_sum (abses_direct_sum E F) G) (abses_direct_sum (abses_direct_sum G F) E).
+Lemma abses_twist_directsum `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
+  : AbSESMorphism (abses_direct_sum (abses_direct_sum E F) G)
+                  (abses_direct_sum (abses_direct_sum G F) E).
 Proof.
   snrapply Build_AbSESMorphism.
   1,2,3: exact ab_biprod_twist.
@@ -394,8 +398,8 @@ Proof.
 Defined.
 
 (** In progress *)
-Lemma twist_trinary_baer_sum `{Univalence} {A B : AbGroup} (E F G : AbSES B A) :
-  abses_trinary_baer_sum E F G = abses_trinary_baer_sum G F E.
+Lemma twist_trinary_baer_sum `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
+  : abses_trinary_baer_sum E F G = abses_trinary_baer_sum G F E.
 Proof.
   unfold abses_trinary_baer_sum, ab_tridiagonal, ab_tricodiagonal.
   
@@ -405,14 +409,12 @@ Admitted.
 
 Plan:
 
-+ Rename abses_id_pullback to abses_pullback_id, swap order in path
-
-- Use pushout0 and pullback0, since we don't need pointedness, and pullback0 avoids Univalence. x
+- replace "tridi" with "tri" and "tricodi" with "cotri" (Dan's fault)
 
 - Define "trinary baer sum" using direct of three extensions as
   pullback tridiagonal (pushout tricodiagonal (directsum E (directsum F G))). x
 - Lemma: baersum E (baersum F G) = trinary baer sum E F G. x
-- Lemma: trinary baer sum E F G = trinary baer sum G F E. 
+- Lemma: trinary baer sum E F G = trinary baer sum G F E.
 - Prop: baersum E (baersum F G) = baersum G (baersum F E).
 - Thm: baersum associative.
 
