@@ -339,24 +339,24 @@ Proof.
 Defined.
 
 (** The definitions of the tri-diagonal and tri-codiagonal homomorphisms. *)
-Definition ab_tridiagonal {A : AbGroup} : A $-> ab_biprod (ab_biprod A A) A
+Definition ab_triagonal {A : AbGroup} : A $-> ab_biprod (ab_biprod A A) A
   := (functor_ab_biprod ab_diagonal grp_homo_id) $o ab_diagonal.
 
-Definition ab_tricodiagonal {A : AbGroup} : ab_biprod (ab_biprod A A) A $-> A
+Definition ab_cotriagonal {A : AbGroup} : ab_biprod (ab_biprod A A) A $-> A
   := ab_codiagonal $o (functor_ab_biprod ab_codiagonal grp_homo_id).
 
 (** The trinary Baer sum of three short exact sequences. *)
 Definition abses_trinary_baer_sum `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
   : AbSES B A
-  := abses_pullback ab_tridiagonal
-                   (abses_pushout ab_tricodiagonal
+  := abses_pullback ab_triagonal
+                   (abses_pushout ab_cotriagonal
                                   (abses_direct_sum (abses_direct_sum E F) G)).
 
 (** For [E, F, G : AbSES B A], the Baer sum of [E], [F] and [G] (associated left) is equal to the trinary Baer sum of [E], [F] and [G]. *)
 Lemma baer_sum_is_trinary `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
   : abses_baer_sum (abses_baer_sum E F) G = abses_trinary_baer_sum E F G.
 Proof.
-  unfold abses_baer_sum, abses_trinary_baer_sum, ab_tridiagonal, ab_tricodiagonal.
+  unfold abses_baer_sum, abses_trinary_baer_sum, ab_triagonal, ab_cotriagonal.
   refine (ap (abses_pullback _ o abses_pushout _) _^ @ _).
   - refine (_ @ ap (abses_direct_sum _) (abses_pullback_id G)).
     refine (_ @ abses_directsum_distributive_pullbacks _ _).
@@ -395,13 +395,52 @@ Proof.
   all: reflexivity.
 Defined.
 
-(** In progress *)
+(** For an abelian group [A], precomosing the triagonal on [A] with the twist map on [A] has no effect. *)
+Definition ab_triagonal_twist {A : AbGroup} : (@ab_biprod_twist A A A) $o ab_triagonal = ab_triagonal
+  := idpath.
+
+(** A similar result for the codiagonal. *)
+Definition ab_cotriagonal_twist `{Funext} {A : AbGroup} : ab_cotriagonal $o (@ab_biprod_twist A A A) = ab_cotriagonal.
+Proof.
+  apply equiv_path_grouphomomorphism.
+  intro x. cbn.
+  refine ((grp_assoc _ _ _)^ @ _).
+  refine (abgroup_commutative _ _ _ @ _).
+  exact (ap (fun a =>  a * (snd x)) (abgroup_commutative _ _ _)).
+Defined.
+          
+(** For [E, F, G : AbSES B A], we can "twist" the order of the trinary Baer sum as follows. *)
 Lemma twist_trinary_baer_sum `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
   : abses_trinary_baer_sum E F G = abses_trinary_baer_sum G F E.
 Proof.
-  unfold abses_trinary_baer_sum, ab_tridiagonal, ab_tricodiagonal.
-  
-Admitted.
+  unfold abses_trinary_baer_sum.
+  (* This line uses the fact that ab_triagonal is definitionally equal to ab_biprod_twist $o ab_triagonal. *)
+  refine (_ @ abses_pullback_compose ab_triagonal ab_biprod_twist _).
+  refine (ap (abses_pullback _) _).
+  refine (ap (fun f => abses_pushout f _) ab_cotriagonal_twist^ @ _).
+  refine ((abses_pushout_compose _ _ _)^ @ _).
+  refine (ap _ (abses_pushout_is_pullback (abses_twist_directsum E F G)) @ _).
+  unfold abses_twist_directsum, component3.
+  exact (abses_reorder_pullback_pushout _ _ _).
+Defined.
+
+(** It now follows that we can twist the order of the summands in the Baer sum. *)
+Lemma baer_sum_twist `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
+  : abses_baer_sum (abses_baer_sum E F) G = abses_baer_sum (abses_baer_sum G F) E.
+Proof.
+  refine ((baer_sum_is_trinary E F G) @ _ @ (baer_sum_is_trinary G F E)^).
+  exact (twist_trinary_baer_sum E F G).
+Defined.
+
+(** From these results, it finally follows that the Baer sum is associative. *)
+Lemma baer_sum_associative `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
+  : abses_baer_sum (abses_baer_sum E F) G = abses_baer_sum E (abses_baer_sum F G).
+Proof.
+  refine ((baer_sum_twist _ _ _)^ @ _).
+  refine (baer_sum_commutative _ _ @ _).
+  apply ap.
+  apply baer_sum_commutative.
+Defined.
 
 (*
 
@@ -412,9 +451,9 @@ Plan:
 - Define "trinary baer sum" using direct of three extensions as
   pullback tridiagonal (pushout tricodiagonal (directsum E (directsum F G))). x
 - Lemma: baersum E (baersum F G) = trinary baer sum E F G. x
-- Lemma: trinary baer sum E F G = trinary baer sum G F E.
-- Prop: baersum E (baersum F G) = baersum G (baersum F E).
-- Thm: baersum associative.
+- Lemma: trinary baer sum E F G = trinary baer sum G F E. x
+- Prop: baersum E (baersum F G) = baersum G (baersum F E). x
+- Thm: baersum associative. x
 
 - Show that Ext is a group.
 
