@@ -446,31 +446,34 @@ Proof.
   apply baer_sum_commutative.
 Defined.
 
-Definition ext_baer_sum `{Univalence} {B A : AbGroup} (E F : Ext B A)
-  : Ext B A.
-Proof.
-  strip_truncations.
-  exact (tr (abses_baer_sum E F)).
-Defined.
-
-Lemma ext_baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : Ext B A)
-  : ext_baer_sum E F = ext_baer_sum F E.
-Proof.
-  strip_truncations.
-  cbn.
-  apply ap.
-  apply baer_sum_commutative.
-Defined.
-
+(** After mapping into the set-truncation, we now have that [Ext B A] is an abelian group for any [A, B : AbGroup]. *)
 Definition abgroup_ext `{Univalence} {A B : AbGroup} : AbGroup.
-Admitted.
+  snrapply Build_AbGroup.
+  - snrapply Build_Group.
+    + exact (Ext B A).
+    + unfold SgOp. intros E F.
+      strip_truncations.
+      exact (tr (abses_baer_sum E F)).
+    + exact (point (Ext B A)).
+    + unfold Negate. intro E.
+      strip_truncations.
+      exact (tr (abses_pullback (-grp_homo_id) E)).
+    + split; try split; try split.
+      1: exact _.
+      all: intro E; try intros F G; strip_truncations; cbn; try apply ap.
+      * symmetry; apply baer_sum_associative.
+      * apply baer_sum_unit_l.
+      * apply baer_sum_unit_r.
+      * by refine (ap tr (baer_sum_inverse_r E)).
+      * by refine (ap tr (baer_sum_inverse_l E)).
+  - intros E F. strip_truncations.
+    cbn. apply ap.
+    apply baer_sum_commutative.
+Defined.
 
 (*
 
 Plan:
-
-- Show that Ext is an abelian group. Probably best to just embed all of the
-  steps into abgroup_ext.
 
 Properties of Ext:
 - Ext is a functor in both variables (pullback, pushforward);
