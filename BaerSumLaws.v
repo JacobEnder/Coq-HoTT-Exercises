@@ -1,5 +1,5 @@
 From HoTT Require Import Basics Types Pointed Homotopy.ExactSequence WildCat
-  AbGroups.AbelianGroup AbSES.Core AbSES.Pullback AbSES.Pushout BaerSum AbGroups.AbPushout.
+  AbGroups.AbelianGroup AbSES.Core AbSES.Pullback AbSES.Pushout AbSES.BaerSum AbSES.Ext AbGroups.AbPushout.
 
 Require Import AbProjective.
 
@@ -134,7 +134,7 @@ Proof.
   refine ((abses_pushout_compose _ _ _)^ @ _).
   refine (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F)) @ _).
   unfold abses_swap_morphism, component3.
-  exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
+  apply abses_reorder_pullback_pushout.
 Defined.
 
 (** For every [E : AbSES B A], there is a morphism of the split short exact sequence into [E]. *)
@@ -338,6 +338,8 @@ Proof.
   exact (ap (abses_pullback _) (abses_directsum_distributive_pushouts f g)).
 Defined.
 
+(** Our next goal is to prove that the Baer sum is associative.  Rather than showing this directly, we first prove [baer_sum_twist], which says that [abses_baer_sum (abses_baer_sum E F) G = abses_baer_sum (abses_baer_sum G F) E].  The proof of this mimics the proof of commutativity above.  Then we prove associativity by combining this with commutativity. *)
+
 (** The definitions of the tri-diagonal and tri-codiagonal homomorphisms. *)
 Definition ab_triagonal {A : AbGroup} : A $-> ab_biprod (ab_biprod A A) A
   := (functor_ab_biprod ab_diagonal grp_homo_id) $o ab_diagonal.
@@ -396,17 +398,19 @@ Proof.
 Defined.
 
 (** For an abelian group [A], precomosing the triagonal on [A] with the twist map on [A] has no effect. *)
-Definition ab_triagonal_twist {A : AbGroup} : (@ab_biprod_twist A A A) $o ab_triagonal = ab_triagonal
+Definition ab_triagonal_twist {A : AbGroup}
+  : ab_biprod_twist $o @ab_triagonal A = ab_triagonal
   := idpath.
 
 (** A similar result for the codiagonal. *)
-Definition ab_cotriagonal_twist `{Funext} {A : AbGroup} : ab_cotriagonal $o (@ab_biprod_twist A A A) = ab_cotriagonal.
+Definition ab_cotriagonal_twist `{Funext} {A : AbGroup}
+  : @ab_cotriagonal A $o ab_biprod_twist = ab_cotriagonal.
 Proof.
   apply equiv_path_grouphomomorphism.
   intro x. cbn.
   refine ((grp_assoc _ _ _)^ @ _).
   refine (abgroup_commutative _ _ _ @ _).
-  exact (ap (fun a =>  a * (snd x)) (abgroup_commutative _ _ _)).
+  exact (ap (fun a =>  a * snd x) (abgroup_commutative _ _ _)).
 Defined.
           
 (** For [E, F, G : AbSES B A], we can "twist" the order of the trinary Baer sum as follows. *)
@@ -414,14 +418,14 @@ Lemma twist_trinary_baer_sum `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
   : abses_trinary_baer_sum E F G = abses_trinary_baer_sum G F E.
 Proof.
   unfold abses_trinary_baer_sum.
-  (* This line uses the fact that ab_triagonal is definitionally equal to ab_biprod_twist $o ab_triagonal. *)
+  (* The next line uses the fact that [ab_triagonal] is definitionally equal to [ab_biprod_twist $o ab_triagonal]: *)
   refine (_ @ abses_pullback_compose ab_triagonal ab_biprod_twist _).
   refine (ap (abses_pullback _) _).
   refine (ap (fun f => abses_pushout f _) ab_cotriagonal_twist^ @ _).
   refine ((abses_pushout_compose _ _ _)^ @ _).
   refine (ap _ (abses_pushout_is_pullback (abses_twist_directsum E F G)) @ _).
   unfold abses_twist_directsum, component3.
-  exact (abses_reorder_pullback_pushout _ _ _).
+  apply abses_reorder_pullback_pushout.
 Defined.
 
 (** It now follows that we can twist the order of the summands in the Baer sum. *)
@@ -429,7 +433,7 @@ Lemma baer_sum_twist `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
   : abses_baer_sum (abses_baer_sum E F) G = abses_baer_sum (abses_baer_sum G F) E.
 Proof.
   refine ((baer_sum_is_trinary E F G) @ _ @ (baer_sum_is_trinary G F E)^).
-  exact (twist_trinary_baer_sum E F G).
+  apply twist_trinary_baer_sum.
 Defined.
 
 (** From these results, it finally follows that the Baer sum is associative. *)
@@ -442,20 +446,44 @@ Proof.
   apply baer_sum_commutative.
 Defined.
 
+Definition ext_baer_sum `{Univalence} {B A : AbGroup} (E F : Ext B A)
+  : Ext B A.
+Proof.
+  strip_truncations.
+  exact (tr (abses_baer_sum E F)).
+Defined.
+
+Lemma ext_baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : Ext B A)
+  : ext_baer_sum E F = ext_baer_sum F E.
+Proof.
+  strip_truncations.
+  cbn.
+  apply ap.
+  apply baer_sum_commutative.
+Defined.
+
+Definition abgroup_ext `{Univalence} {A B : AbGroup} : AbGroup.
+Admitted.
+
 (*
 
 Plan:
 
-- replace "tridi" with "tri" and "tricodi" with "cotri" (Dan's fault)
+- Show that Ext is an abelian group. Probably best to just embed all of the
+  steps into abgroup_ext.
 
-- Define "trinary baer sum" using direct of three extensions as
-  pullback tridiagonal (pushout tricodiagonal (directsum E (directsum F G))). x
-- Lemma: baersum E (baersum F G) = trinary baer sum E F G. x
-- Lemma: trinary baer sum E F G = trinary baer sum G F E. x
-- Prop: baersum E (baersum F G) = baersum G (baersum F E). x
-- Thm: baersum associative. x
+Properties of Ext:
+- Ext is a functor in both variables (pullback, pushforward);
+  these are group homomorphisms.
 
-- Show that Ext is a group.
+Calculations of Ext:
+- Ext(Z/n, A) = A/n (even just for A = Z)
 
-- Do the hexagon and pentagon laws hold for AbSES?  Might be quite challenging.
+Higher coherences (might be quite challenging):
+- commutativity @ commutativity = idpath?
+- triangle involving unit laws + assoc
+- pentagon
+- hexagon
+See https://ncatlab.org/nlab/show/symmetric+monoidal+category
+
 *)
