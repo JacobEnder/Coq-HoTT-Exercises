@@ -127,16 +127,14 @@ Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A)
   : abses_baer_sum E F = abses_baer_sum F E.
 Proof.
   unfold abses_baer_sum.
-  refine (_ @ _).
-  - refine (ap (abses_pullback ab_diagonal) _).
-    refine (ap (fun f => abses_pushout f _) ab_codiagonal_swap^ @ _).
-    refine (_^ @_).
-    1: nrapply abses_pushout_compose.
-    refine (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F)) @ _).
-    unfold abses_swap_morphism, component3.
-    exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
-  - exact (abses_pullback_compose ab_diagonal direct_sum_swap _).
-  (* This uses that [direct_sum_swap $o ab_diagonal] is definitionally equal to [ab_diagonal]. *)
+  (* The next line uses that [direct_sum_swap $o ab_diagonal] is definitionally equal to [ab_diagonal]: *)
+  refine (_ @ abses_pullback_compose ab_diagonal direct_sum_swap _).
+  refine (ap (abses_pullback ab_diagonal) _).
+  refine (ap (fun f => abses_pushout f _) ab_codiagonal_swap^ @ _).
+  refine ((abses_pushout_compose _ _ _)^ @ _).
+  refine (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F)) @ _).
+  unfold abses_swap_morphism, component3.
+  exact (abses_reorder_pullback_pushout _ ab_codiagonal direct_sum_swap).
 Defined.
 
 (** For every [E : AbSES B A], there is a morphism of the split short exact sequence into [E]. *)
