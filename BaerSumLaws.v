@@ -446,29 +446,37 @@ Proof.
   apply baer_sum_commutative.
 Defined.
 
-(** After mapping into the set-truncation, we now have that [Ext B A] is an abelian group for any [A, B : AbGroup]. *)
-Definition abgroup_ext `{Univalence} {A B : AbGroup} : AbGroup.
-  snrapply Build_AbGroup.
-  - snrapply Build_Group.
-    + exact (Ext B A).
-    + unfold SgOp. intros E F.
-      strip_truncations.
-      exact (tr (abses_baer_sum E F)).
-    + exact (point (Ext B A)).
-    + unfold Negate. intro E.
-      strip_truncations.
-      exact (tr (abses_pullback (-grp_homo_id) E)).
-    + split; try split; try split.
-      1: exact _.
-      all: intro E; try intros F G; strip_truncations; cbn; try apply ap.
-      * symmetry; apply baer_sum_associative.
-      * apply baer_sum_unit_l.
-      * apply baer_sum_unit_r.
-      * by refine (ap tr (baer_sum_inverse_r E)).
-      * by refine (ap tr (baer_sum_inverse_l E)).
-  - intros E F. strip_truncations.
-    cbn. apply ap.
-    apply baer_sum_commutative.
+(** After taking the set-truncation, it follows that [Ext B A] is an abelian group for any [A, B : AbGroup]. The proof of commutativity is a bit faster if we separate out the proof that [Ext B A] is a group. *)
+Definition group_ext `{Univalence} (A B : AbGroup) : Group.
+Proof.
+  snrapply Build_Group.
+  - exact (Ext B A).
+  - unfold SgOp. intros E F.
+    strip_truncations.
+    exact (tr (abses_baer_sum E F)).
+  - exact (point (Ext B A)).
+  - unfold Negate. intro E.
+    strip_truncations.
+    exact (tr (abses_pullback (-grp_homo_id) E)).
+  - split; try split; try split.
+    1: exact _.
+    all: intro E.  1: intros F G.
+    all: strip_truncations; unfold mon_unit, point, ispointed_ext; apply (ap tr).
+    + symmetry; apply baer_sum_associative.
+    + apply baer_sum_unit_l.
+    + apply baer_sum_unit_r.
+    + apply baer_sum_inverse_r.
+    + apply baer_sum_inverse_l.
+Defined.
+
+Definition abgroup_ext `{Univalence} (A B : AbGroup) : AbGroup.
+Proof.
+  snrapply (Build_AbGroup (group_ext B A)).
+  intros E F.
+  cbn.
+  strip_truncations; cbn.
+  apply ap.
+  apply baer_sum_commutative.
 Defined.
 
 (*
