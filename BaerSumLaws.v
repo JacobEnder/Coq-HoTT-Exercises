@@ -487,5 +487,6 @@ Higher coherences (might be quite challenging):
 - triangle involving unit laws + assoc
 - pentagon
 - hexagon
+See https://ncatlab.org/nlab/show/symmetric+monoidal+category
 
 *)
