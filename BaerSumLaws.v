@@ -446,18 +446,19 @@ Proof.
   apply baer_sum_commutative.
 Defined.
 
+(** ** Results about [Ext1] *)
+(** Place in AbGroups/AbSES/Ext. *)
+
 (** After taking the set-truncation, it follows that [Ext B A] is an abelian group for any [A, B : AbGroup]. The proof of commutativity is a bit faster if we separate out the proof that [Ext B A] is a group. *)
 Definition group_ext `{Univalence} (A B : AbGroup) : Group.
 Proof.
-  snrapply Build_Group.
-  - exact (Ext B A).
-  - unfold SgOp. intros E F.
+  snrapply (Build_Group (Ext B A)).
+  - intros E F.
     strip_truncations.
     exact (tr (abses_baer_sum E F)).
   - exact (point (Ext B A)).
-  - unfold Negate. intro E.
-    strip_truncations.
-    exact (tr (abses_pullback (-grp_homo_id) E)).
+  - unfold Negate.
+    exact (Trunc_functor _ (abses_pullback (-grp_homo_id))).
   - split; try split; try split.
     1: exact _.
     all: intro E.  1: intros F G.
