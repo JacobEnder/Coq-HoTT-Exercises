@@ -481,6 +481,7 @@ Plan:
 Properties of Ext:
 - Ext is a functor in both variables (pullback, pushforward);
   these are group homomorphisms.
+- For a fixed s.e.s E, [fun f => abses_pullback f E] and [fun g => abses_pushout g E] are group homomorphisms.
 
 Calculations of Ext:
 - Ext(Z/n, A) = A/n (even just for A = Z)
