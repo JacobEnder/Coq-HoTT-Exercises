@@ -476,6 +476,69 @@ Proof.
   apply baer_sum_commutative.
 Defined.
 
+(** Pullbacks and pushouts in [Ext B A] follow from their counterparts in [AbSES B A]. *)
+Definition ext_pullback {A B B' : AbGroup} (f : B' $-> B)
+  : Ext B A -> Ext B' A.
+Proof.
+  intro E.
+  strip_truncations.
+  exact (tr (abses_pullback f E)).
+Defined.
+
+Definition ext_pushout `{Univalence} {A A' B : AbGroup} (f : A $-> A')
+  : Ext B A -> Ext B A'.
+Proof.
+  intro E.
+  strip_truncations.
+  exact (tr (abses_pushout f E)).
+Defined.
+
+(** For [E : Ext B A], pulling back or pushing out along the identity has no effect. *)
+Lemma ext_pullback_id `{Univalence} {A B : AbGroup} (E : Ext B A)
+  : ext_pullback (grp_homo_id) E = E.
+Proof.
+  strip_truncations.
+  cbn. apply ap.
+  apply abses_pullback_id.
+Defined.
+
+Lemma ext_pushout_id `{Univalence} {A B : AbGroup} (E : Ext B A)
+  : ext_pushout (grp_homo_id) E = E.
+Proof.
+  strip_truncations.
+  cbn. apply ap.
+  apply abses_pushout_id.
+Defined.
+
+(** Pulling back in [Ext B A] preserves composition *)
+Lemma ext_pullback_compose `{Univalence} {A B0 B1 B2 : AbGroup}
+      (f : B0 $-> B1) (g : B1 $-> B2)
+  : ext_pullback (A := A) f o ext_pullback g == ext_pullback (g $o f).
+Proof.
+  intro E. strip_truncations.
+  cbn. apply ap.
+  apply abses_pullback_compose.
+Defined.
+
+(** Pushing out in [Ext B A] preserves composition *)
+Lemma ext_pushout_compose `{Univalence} {A0 A1 A2 B : AbGroup}
+      (f : A0 $-> A1) (g : A1 $-> A2)
+  : ext_pushout (B := B) g o ext_pushout f == ext_pushout (g $o f).
+Proof.
+  intro E. strip_truncations.
+  cbn. apply ap.
+  apply abses_pushout_compose.
+Defined.
+
+(** Ext is a covariant functor in its second variable. *)
+Lemma is0functor_ext_covariant `{Univalence} {B : AbGroup} 
+  : Is0Functor (Ext B).
+Proof.
+  snrapply Build_Is0Functor.
+  intros A A' f.
+  exact (ext_pushout f).
+Defined.              
+
 (*
 
 Plan:
