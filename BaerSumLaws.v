@@ -67,16 +67,16 @@ Definition ab_diagonal_swap {A : AbGroup}
   : direct_sum_swap $o (@ab_diagonal A) = ab_diagonal
   := idpath.
 
-(** This is the isomorphism [A + (A + A) <~> (A + A) + A] that associativity relies on in Mac Lane. *)
-Lemma ab_biprod_assoc {A : AbGroup}
-  : ab_biprod A (ab_biprod A A) $<~> ab_biprod (ab_biprod A A) A.
+(** The biproduct is associative. *)
+Lemma ab_biprod_assoc {A B C : AbGroup}
+  : ab_biprod A (ab_biprod B C) $<~> ab_biprod (ab_biprod A B) C.
 Proof.
   snrapply Build_GroupIsomorphism'.
   - apply equiv_prod_assoc.
   - unfold IsSemiGroupPreserving; reflexivity.
 Defined.
 
-(** We now get that [(ab_diagonal + id) o ab_diagonal = (id + ab_diagonal) o ab_diagonal] after passing into the right direct sum via the above isomorphism. *)
+(** The iterated diagonals [(ab_diagonal + id) o ab_diagonal] and [(id + ab_diagonal) o ab_diagonal] agree, after reassociating the direct sum. *)
 Definition ab_commute_id_diagonal {A : AbGroup}
   : (functor_ab_biprod (@ab_diagonal A) grp_homo_id) $o ab_diagonal
     = ab_biprod_assoc $o (functor_ab_biprod grp_homo_id ab_diagonal) $o ab_diagonal
@@ -92,7 +92,9 @@ Proof.
   exact (grp_assoc _ _ _)^.
 Defined.
 
-(** For any three abelian groups [A], [B] and [C], we have (A + B) + C <~> (C + B) + A, where + is the direct sum. *)
+(** The next few results are used to prove associativity of the Baer sum. *)
+
+(** A "twist" isomorphism [(A + B) + C <~> (C + B) + A]. *)
 Lemma ab_biprod_twist {A B C : AbGroup}
   : ab_biprod (ab_biprod A B) C $<~> ab_biprod (ab_biprod C B) A.
 Proof.
@@ -108,35 +110,19 @@ Proof.
     + reflexivity.
 Defined.
 
-(** For any short exact sequences [E], [E'], [F], [F'], and morphisms [f : E -> E'] and [g : F -> F'] there is a morphism [E + F -> E' + F']. *)
-Lemma functor_abses_directsum `{Funext} {A A' B B' C C' D D' : AbGroup}
-      {E : AbSES B A} {E' : AbSES B' A'} {F : AbSES D C} {F' : AbSES D' C'}
-      (f : AbSESMorphism E E') (g : AbSESMorphism F F')
-  : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum E' F').
-Proof.
-  snrapply Build_AbSESMorphism.
-  + exact (functor_ab_biprod (component1 f) (component1 g)).
-  + exact (functor_ab_biprod (component2 f) (component2 g)).
-  + exact (functor_ab_biprod (component3 f) (component3 g)).
-  + intro x.
-    apply path_prod; apply left_square.
-  + intro x.
-    apply path_prod; apply right_square.
-Defined.
-
-(** The definitions of the tri-diagonal and tri-codiagonal homomorphisms. *)
+(** The triagonal and cotriagonal homomorphisms. *)
 Definition ab_triagonal {A : AbGroup} : A $-> ab_biprod (ab_biprod A A) A
   := (functor_ab_biprod ab_diagonal grp_homo_id) $o ab_diagonal.
 
 Definition ab_cotriagonal {A : AbGroup} : ab_biprod (ab_biprod A A) A $-> A
   := ab_codiagonal $o (functor_ab_biprod ab_codiagonal grp_homo_id).
 
-(** For an abelian group [A], precomosing the triagonal on [A] with the twist map on [A] has no effect. *)
+(** For an abelian group [A], precomposing the triagonal on [A] with the twist map on [A] has no effect. *)
 Definition ab_triagonal_twist {A : AbGroup}
   : ab_biprod_twist $o @ab_triagonal A = ab_triagonal
   := idpath.
 
-(** A similar result for the codiagonal. *)
+(** A similar result for the cotriagonal. *)
 Definition ab_cotriagonal_twist `{Funext} {A : AbGroup}
   : @ab_cotriagonal A $o ab_biprod_twist = ab_cotriagonal.
 Proof.
@@ -156,6 +142,22 @@ Lemma abses_morphism_id {A B : AbGroup} (E : AbSES B A) : AbSESMorphism E E.
 Proof.
   snrapply (Build_AbSESMorphism grp_homo_id grp_homo_id grp_homo_id).
   1,2: reflexivity.
+Defined.
+
+(** For any short exact sequences [E], [E'], [F], [F'], and morphisms [f : E -> E'] and [g : F -> F'] there is a morphism [E + F -> E' + F']. *)
+Lemma functor_abses_directsum `{Funext} {A A' B B' C C' D D' : AbGroup}
+      {E : AbSES B A} {E' : AbSES B' A'} {F : AbSES D C} {F' : AbSES D' C'}
+      (f : AbSESMorphism E E') (g : AbSESMorphism F F')
+  : AbSESMorphism (abses_direct_sum E F) (abses_direct_sum E' F').
+Proof.
+  snrapply Build_AbSESMorphism.
+  + exact (functor_ab_biprod (component1 f) (component1 g)).
+  + exact (functor_ab_biprod (component2 f) (component2 g)).
+  + exact (functor_ab_biprod (component3 f) (component3 g)).
+  + intro x.
+    apply path_prod; apply left_square.
+  + intro x.
+    apply path_prod; apply right_square.
 Defined.
 
 (** For any short exact sequence [E], there is a morphism [E -> abses_direct_sum E E], where each component is ab_diagonal. *)
@@ -213,7 +215,7 @@ Defined.
 (** ** Results about pullbacks of short exact sequences *)
 (** Place in Algebra/AbGroups/AbSES/Pullback. *)
 
-(** For every [E : AbSES B A], there is an identification of [E] with the pullback of [E] along [id_B]. *)
+(** For every [E : AbSES B A], the pullback of [E] along [id_B] is [E]. *)
 Definition abses_pullback_id `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_pullback (@grp_homo_id B) E = E
   := (abses_pullback_component1_id (abses_morphism_id E) (fun _ => idpath))^.
@@ -259,6 +261,7 @@ Definition abses_pushout_component3_id `{Univalence}
   : abses_pushout (component1 f) E = F
   := equiv_path_abses_iso (abses_pushout_component3_id' f h).
 
+(** For every [E : AbSES B A], the pushout of [E] along [id_A] is [E]. *)
 Definition abses_pushout_id `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_pushout (@grp_homo_id A) E = E
   := abses_pushout_component3_id (abses_morphism_id E) (fun _ => idpath).
@@ -282,7 +285,6 @@ Definition abses_directsum_distributive_pushouts `{Univalence}
 (** Place in Algebra/AbGroups/AbSES/BaerSum. *)
 
 (** Given a morphism [f] of short exact sequences, the pushout of the domain along [f_1] equals the pullback of the codomain along [f_3]. *)
-(* jarl: is there a reason to prefer [refine] over [exact] or using [Definition] here? *)
 Lemma abses_pushout_is_pullback `{Univalence} {A A' B B' : AbGroup}
       {E : AbSES B A} {E' : AbSES B' A'} (f : AbSESMorphism E E')
   : abses_pushout (component1 f) E = abses_pullback (component3 f) E'.
@@ -318,7 +320,7 @@ Proof.
   exact (ap (abses_pullback _) (abses_directsum_distributive_pullbacks f g)).
 Defined.
 
-(** A proof of commutativity of the Baer sum. *)
+(** The Baer sum is commutative. *)
 Lemma baer_sum_commutative `{Univalence} {A B : AbGroup} (E F : AbSES B A)
   : abses_baer_sum E F = abses_baer_sum F E.
 Proof.
@@ -350,7 +352,7 @@ Definition baer_sum_unit_l `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_baer_sum (point (AbSES B A)) E = E
   := baer_sum_commutative _ _ @ baer_sum_unit_r _.
 
-(** We can now prove the inverse laws for the Baer sum, which state that for any [E : AbSES B A], the pullback of [E] along [-id_B] acts as an additive inverse for [E] with respect to the Baer sum. *)
+(** For any [E : AbSES B A], the pullback of [E] along [-id_B] acts as an additive inverse for [E] with respect to the Baer sum. *)
 Lemma baer_sum_inverse_l `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_baer_sum E (abses_pullback (-grp_homo_id) E) = point (AbSES B A).
 Proof.
@@ -443,7 +445,7 @@ Defined.
 (** ** Results about [Ext1] *)
 (** Place in AbGroups/AbSES/Ext. *)
 
-(** After taking the set-truncation, it follows that [Ext B A] is an abelian group for any [A, B : AbGroup]. The proof of commutativity is a bit faster if we separate out the proof that [Ext B A] is a group. *)
+(** [Ext B A] is an abelian group for any [A, B : AbGroup]. The proof of commutativity is a bit faster if we separate out the proof that [Ext B A] is a group. *)
 Definition group_ext `{Univalence} (A B : AbGroup) : Group.
 Proof.
   snrapply (Build_Group (Ext B A)).
