@@ -213,11 +213,6 @@ Defined.
 (** ** Results about pullbacks of short exact sequences *)
 (** Place in Algebra/AbGroups/AbSES/Pullback. *)
 
-(** For every [E : AbSES B A], there is an identification of the split exact sequence with the pullback of E along the zero homomorphism [B $-> B]. *)
-Definition abses_pullback_const_split `{Univalence} {A B : AbGroup} (E : AbSES B A)
-  : point (AbSES B A) = abses_pullback (grp_homo_const) E
-  := abses_pullback_component1_id (abses_split_morphism E) (fun _ => idpath).
-
 (** For every [E : AbSES B A], there is an identification of [E] with the pullback of [E] along [id_B]. *)
 Definition abses_pullback_id `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_pullback (@grp_homo_id B) E = E
@@ -343,7 +338,7 @@ Lemma baer_sum_unit_r `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_baer_sum E (point (AbSES B A)) = E.
 Proof.
   refine (ap (abses_baer_sum E) _ @ _).
-  - exact (abses_pullback_const_split E).
+  - exact (abses_pullback_const E).
   - refine (ap (fun F => abses_baer_sum F (abses_pullback grp_homo_const E)) (abses_pullback_id E)^ @ _).
     refine ((baer_sum_distributive_pullbacks grp_homo_id grp_homo_const)^ @ _).
     refine (ap (fun f => abses_pullback f E) (ab_homo_add_zero_r _) @ _).
@@ -362,7 +357,7 @@ Proof.
   refine (ap (fun F => abses_baer_sum F (abses_pullback _ E)) (abses_pullback_id E)^ @ _).
   refine ((baer_sum_distributive_pullbacks grp_homo_id (-grp_homo_id))^ @ _).
   refine (ap (fun f => abses_pullback f _) (ab_negate_homo_cancel _) @ _).
-  symmetry; apply abses_pullback_const_split.
+  symmetry; apply abses_pullback_const.
 Defined.
 
 (** The right inverse law follows by commutativity. *)
