@@ -472,7 +472,7 @@ Proof.
   - exact (point (Ext B A)).
   - unfold Negate.
     exact (Trunc_functor _ (abses_pullback (group_inverse (g := ab_hom _ _) grp_homo_id))).
-  - split; try split; try split.
+  - repeat split.
     1: exact _.
     all: intro E.  1: intros F G.
     all: strip_truncations; unfold mon_unit, point, ispointed_ext; apply (ap tr).
@@ -487,7 +487,6 @@ Definition abgroup_ext `{Univalence} (A B : AbGroup) : AbGroup.
 Proof.
   snrapply (Build_AbGroup (grp_ext B A)).
   intros E F.
-  cbn.
   strip_truncations; cbn.
   apply ap.
   apply baer_sum_commutative.
@@ -581,6 +580,7 @@ Proof.
 Defined.
 
 (** Ext is a contravariant 1-functor in its first variable. *)
+(* To do:  remove (A := AbGroup^op) when definition of Ext is changed. *)
 Global Instance is1functor_ext_contravariant `{Univalence} {A : AbGroup}
   : Is1Functor (A := AbGroup^op) (fun B => Ext B A).
 Proof.
