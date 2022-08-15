@@ -270,6 +270,19 @@ Definition abses_pushout_id `{Univalence} {A B : AbGroup} (E : AbSES B A)
   : abses_pushout (@grp_homo_id A) E = E
   := abses_pushout_component3_id (abses_morphism_id E) (fun _ => idpath).
 
+(** Pushing out along homotopic maps induces homotopic pushout functors. *)
+Lemma abses_pushout_homotopic' `{Univalence} {A A' B : AbGroup} (f f' : A $-> A') (h : f == f')
+  : abses_pushout (B:=B) f $=> abses_pushout f'.
+Proof.
+  induction (equiv_path_grouphomomorphism h).
+  apply id_transformation.
+Defined.
+
+Definition abses_pushout_homotopic `{Univalence} {A A' B : AbGroup}
+  (f f' : A $-> A') (h : f == f')
+  : abses_pushout (B:=B) f == abses_pushout f'
+  := equiv_path_data_homotopy _ _ (abses_pushout_homotopic' _ _ h).
+
 (** Given short exact sequences [E] and [F] and homomorphisms [f : A' $-> A] and [g : D' $-> D], there is a morphism [E + F -> fE + gF] induced by the universal properties of the pushouts of [E] and [F]. *)
 Definition abses_directsum_pushout_morphism `{Univalence}
            {A A' B C D D' : AbGroup} {E : AbSES B A'} {F : AbSES C D'}
@@ -548,6 +561,44 @@ Proof.
   exact (ext_pullback f).
 Defined.
 
+(** Ext is a covariant 1-functor in its second variable. *)
+Global Instance is1functor_ext_covariant `{Univalence} {B : AbGroup}
+  : Is1Functor (Ext B).
+Proof.
+  snrapply Build_Is1Functor.
+  - intros A A' f g h E.
+    strip_truncations.
+    cbn. apply ap.
+    apply (abses_pushout_homotopic _ _ h).
+  - intros A E.
+    strip_truncations.
+    cbn. apply ap.
+    apply abses_pushout_id.
+  - intros C C' D f g E. 
+    strip_truncations.
+    cbn. apply ap.
+    symmetry; apply abses_pushout_compose.
+Defined.
+
+(** Ext is a contravariant 1-functor in its first variable. *)
+Global Instance is1functor_ext_contravariant `{Univalence} {A : AbGroup}
+  : Is1Functor (A := AbGroup^op) (fun B => Ext B A).
+Proof.
+  snrapply Build_Is1Functor.
+  - intros C C' f g h E.
+    strip_truncations.
+    cbn. apply ap.
+    apply (abses_pullback_phomotopic _ _ h).
+  - intros C E.
+    strip_truncations.
+    cbn. apply ap.
+    apply abses_pullback_id.
+  - intros C C' D f g E.
+    strip_truncations.
+    cbn. apply ap.
+    symmetry; apply abses_pullback_compose. 
+Defined.
+
 (** Pulling back in [Ext B A] induces a group homomorphism [Hom B' B $-> Ext B' A]. *)
 Lemma ext_homo_pullback `{Univalence} {A B B' : AbGroup} (E : Ext B A)
   : GroupHomomorphism (ab_hom B' B) (abgroup_ext B' A).
@@ -576,15 +627,15 @@ Defined.
 
 Plan:
 
-- Embed proofs of axioms for functors/groups when short/compile fast 
-- Change "is" lemmas to instances
+- Embed proofs of axioms for functors/groups when short/compile fast (Done)
+- Change "is" lemmas to instances (Done)
 - First argument in Ext/AbSES needs to be in opposite category (baersum branch too)
 - AbSES functorial in each variable
 
 Properties of Ext:
 - Ext is a functor in both variables (pullback, pushforward);
-  these are group homomorphisms.
-- For a fixed s.e.s E, [fun f => abses_pullback f E] and [fun g => abses_pushout g E] are group homomorphisms.
+  these are group homomorphisms. (Done)
+- For a fixed s.e.s E, [fun f => abses_pullback f E] and [fun g => abses_pushout g E] are group homomorphisms. (Done)
 
 Calculations of Ext:
 - Ext(Z/n, A) = A/n (even just for A = Z)
