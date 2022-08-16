@@ -11,15 +11,21 @@ Local Open Scope mc_add_scope.
 (** ** Lemmas about abelian groups *)
 (** Place these results in Algebra/AbGroups/AbelianGroup. *)
 
+Global Instance negate_hom `{Funext} (A : Group) (B : AbGroup)
+  : Negate (GroupHomomorphism A B).
+Proof.
+   exact (fun f => grp_homo_compose ab_homo_negation f).  
+Defined.
+
 (** For [A, B : AbGroup], homomorphisms A $-> B form an abelian group.  *)
-Definition grp_hom `{Funext} (A B : AbGroup) : Group.
+Definition grp_hom `{Funext} (A : Group) (B : AbGroup) : Group.
 Proof.
   snrapply Build_Group.
     - exact (GroupHomomorphism A B).
-    - intros f g.
-      exact (ab_codiagonal $o ab_biprod_corec f g).
+    - intros f g. 
+      exact (grp_homo_compose ab_codiagonal (grp_prod_corec f g)).
     - exact grp_homo_const. 
-    - exact (fun f => grp_homo_compose ab_homo_negation f).
+    - exact _.
     - repeat split.
         1: exact _.
         all: hnf; intros; apply equiv_path_grouphomomorphism; intro; cbn.
@@ -30,7 +36,7 @@ Proof.
         + apply right_inverse.
 Defined.
 
-Definition ab_hom (A B : AbGroup) `{Funext} : AbGroup.
+Definition ab_hom `{Funext} (A : Group) (B : AbGroup) : AbGroup.
 Proof.
   snrapply (Build_AbGroup (grp_hom A B)).
     - intros f g. cbn.
@@ -371,10 +377,10 @@ Definition baer_sum_unit_l `{Univalence} {A B : AbGroup} (E : AbSES B A)
 
 (** For any [E : AbSES B A], the pullback of [E] along [-id_B] acts as an additive inverse for [E] with respect to the Baer sum. *)
 Lemma baer_sum_inverse_l `{Univalence} {A B : AbGroup} (E : AbSES B A)
-  : abses_baer_sum E (abses_pullback (group_inverse (g := ab_hom _ _) grp_homo_id) E) = point (AbSES B A).
+  : abses_baer_sum E (abses_pullback (- grp_homo_id) E) = point (AbSES B A).
 Proof.
   refine (ap (fun F => abses_baer_sum F (abses_pullback _ E)) (abses_pullback_id E)^ @ _).
-  refine ((baer_sum_distributive_pullbacks grp_homo_id (group_inverse (g := ab_hom _ _) grp_homo_id))^ @ _).
+  refine ((baer_sum_distributive_pullbacks grp_homo_id (-grp_homo_id))^ @ _).
   refine (ap (fun f => abses_pullback f _) (grp_inv_r (G := ab_hom _ _) _) @ _).
   symmetry; apply abses_pullback_const.
 Defined.
@@ -483,7 +489,7 @@ Proof.
     + apply baer_sum_inverse_l.
 Defined.
 
-Definition abgroup_ext `{Univalence} (A B : AbGroup) : AbGroup.
+Definition ab_ext `{Univalence} (A B : AbGroup) : AbGroup.
 Proof.
   snrapply (Build_AbGroup (grp_ext B A)).
   intros E F.
@@ -492,63 +498,13 @@ Proof.
   apply baer_sum_commutative.
 Defined.
 
-
-(** Pullbacks and pushouts in [Ext B A] follow from their counterparts in [AbSES B A]. *)
-Definition ext_pullback {A B B' : AbGroup} (f : B' $-> B)
-  : Ext B A -> Ext B' A
-  := Trunc_functor _ (abses_pullback f).
-
-Definition ext_pushout `{Univalence} {A A' B : AbGroup} (f : A $-> A')
-  : Ext B A -> Ext B A'
-  := Trunc_functor _ (abses_pushout f).
-
-(** For [E : Ext B A], pulling back or pushing out along the identity has no effect. *)
-Lemma ext_pullback_id `{Univalence} {A B : AbGroup} 
-  : ext_pullback (grp_homo_id) == Id (Ext B A).
-Proof.
-  rapply Trunc_ind; intro E.
-  cbn.
-  apply ap.
-  apply abses_pullback_id.
-Defined.
-
-Lemma ext_pushout_id `{Univalence} {A B : AbGroup} 
-  : ext_pushout (grp_homo_id) == Id (Ext B A).
-Proof.
-  rapply Trunc_ind; intro E.
-  cbn. apply ap.
-  apply abses_pushout_id.
-Defined.
-
-(** Pulling back in [Ext B A] preserves composition *)
-Lemma ext_pullback_compose `{Univalence} {A B0 B1 B2 : AbGroup}
-      (f : B0 $-> B1) (g : B1 $-> B2)
-  : ext_pullback (A := A) f o ext_pullback g == ext_pullback (g $o f).
-Proof.
-  rapply Trunc_ind; intro E.
-  cbn.
-  apply ap.
-  apply abses_pullback_compose.
-Defined.
-
-(** Pushing out in [Ext B A] preserves composition *)
-Lemma ext_pushout_compose `{Univalence} {A0 A1 A2 B : AbGroup}
-      (f : A0 $-> A1) (g : A1 $-> A2)
-  : ext_pushout (B := B) g o ext_pushout f == ext_pushout (g $o f).
-Proof.
-  rapply Trunc_ind; intro E.
-  cbn.
-  apply ap.
-  apply abses_pushout_compose.
-Defined.
-
 (** Ext is a covariant 0-functor in its second variable. *)
 Global Instance is0functor_ext_covariant `{Univalence} {B : AbGroup} 
   : Is0Functor (Ext B).
 Proof.
   snrapply Build_Is0Functor.
   intros A A' f.
-  exact (ext_pushout f).
+  exact (Trunc_functor _ (abses_pushout f)).
 Defined.
 
 (** Ext is a contravariant 0-functor in its first variable. *)
@@ -557,7 +513,7 @@ Global Instance is0functor_ext_contravariant `{Univalence} {A : AbGroup}
 Proof.
   snrapply Build_Is0Functor.
   intros B' B f.
-  exact (ext_pullback f).
+  exact (Trunc_functor _ (abses_pullback f)).
 Defined.
 
 (** Ext is a covariant 1-functor in its second variable. *)
@@ -580,7 +536,8 @@ Proof.
 Defined.
 
 (** Ext is a contravariant 1-functor in its first variable. *)
-(* To do:  remove (A := AbGroup^op) when definition of Ext is changed. *)
+
+(* To do: remove (A := AbGroup^op) when definition of Ext is changed. *)
 Global Instance is1functor_ext_contravariant `{Univalence} {A : AbGroup}
   : Is1Functor (A := AbGroup^op) (fun B => Ext B A).
 Proof.
@@ -600,11 +557,13 @@ Proof.
 Defined.
 
 (** Pulling back in [Ext B A] induces a group homomorphism [Hom B' B $-> Ext B' A]. *)
+
+(* Jarl to finish -- in progress *)
 Lemma ext_homo_pullback `{Univalence} {A B B' : AbGroup} (E : Ext B A)
-  : GroupHomomorphism (ab_hom B' B) (abgroup_ext B' A).
+  : GroupHomomorphism (ab_hom B' B) (ab_ext B' A).
 Proof.
   snrapply Build_GroupHomomorphism.
-  - intro f. exact (ext_pullback f E).
+  - intro f. (* refine (fmap (fun B => Ext B A) _ E).*)
   - intros f g.
     strip_truncations.
     cbn. apply ap.
@@ -613,7 +572,7 @@ Defined.
 
 (** Pushing out in [Ext B A] induces a group homomorphism [Hom A A' $-> Ext B A']. *)
 Lemma ext_homo_pushout `{Univalence} {A A' B : AbGroup} (E : Ext B A)
-  : GroupHomomorphism (ab_hom A A') (abgroup_ext B A').
+  : GroupHomomorphism (ab_hom A A') (ab_ext B A').
 Proof.
   snrapply Build_GroupHomomorphism.
   - intro f. exact (ext_pushout f E).
