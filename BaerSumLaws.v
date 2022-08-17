@@ -1,4 +1,5 @@
 From HoTT Require Import Basics Types Pointed Homotopy.ExactSequence WildCat
+          WildCat.Profunctor Truncations
   AbGroups.AbelianGroup AbSES.Core AbSES.Pullback AbSES.Pushout AbSES.BaerSum AbSES.Ext AbGroups.AbPushout.
 
 Require Import AbProjective.
@@ -11,38 +12,33 @@ Local Open Scope mc_add_scope.
 (** ** Lemmas about abelian groups *)
 (** Place these results in Algebra/AbGroups/AbelianGroup. *)
 
-Global Instance negate_hom `{Funext} (A : Group) (B : AbGroup)
-  : Negate (GroupHomomorphism A B).
-Proof.
-   exact (fun f => grp_homo_compose ab_homo_negation f).  
-Defined.
+Global Instance negate_hom (A : Group) (B : AbGroup)
+  : Negate (@Hom Group _ A B) := grp_homo_compose ab_homo_negation.
 
 (** For [A, B : AbGroup], homomorphisms A $-> B form an abelian group.  *)
 Definition grp_hom `{Funext} (A : Group) (B : AbGroup) : Group.
 Proof.
-  snrapply Build_Group.
-    - exact (GroupHomomorphism A B).
-    - intros f g. 
-      exact (grp_homo_compose ab_codiagonal (grp_prod_corec f g)).
-    - exact grp_homo_const. 
-    - exact _.
-    - repeat split.
-        1: exact _.
-        all: hnf; intros; apply equiv_path_grouphomomorphism; intro; cbn.
-        + apply associativity.
-        + apply left_identity.
-        + apply right_identity.
-        + apply left_inverse.
-        + apply right_inverse.
+  nrefine (Build_Group
+              (GroupHomomorphism A B)
+              (fun f g => grp_homo_compose ab_codiagonal (grp_prod_corec f g))
+              grp_homo_const
+              (@negate_hom _ _) _).
+  repeat split.
+  1: exact _.
+  all: hnf; intros; apply equiv_path_grouphomomorphism; intro; cbn.
+  + apply associativity.
+  + apply left_identity.
+  + apply right_identity.
+  + apply left_inverse.
+  + apply right_inverse.
 Defined.
 
 Definition ab_hom `{Funext} (A : Group) (B : AbGroup) : AbGroup.
 Proof.
   snrapply (Build_AbGroup (grp_hom A B)).
-    - intros f g. cbn.
-      apply equiv_path_grouphomomorphism.
-      intro x.
-      cbn. apply commutativity.
+  intros f g; cbn.
+  apply equiv_path_grouphomomorphism; intro x; cbn.
+  apply commutativity.
 Defined.
 
 (** ** Lemmas about direct sums (or biproducts) *)
@@ -147,13 +143,6 @@ Defined.
 (** ** General lemmas about short exact sequences *)
 (** Place in Algebra/AbGroups/AbSES/Core. *)
 
-(** The identity morphism from [E] to [E]. *)
-Lemma abses_morphism_id {A B : AbGroup} (E : AbSES B A) : AbSESMorphism E E.
-Proof.
-  snrapply (Build_AbSESMorphism grp_homo_id grp_homo_id grp_homo_id).
-  1,2: reflexivity.
-Defined.
-
 (** For any short exact sequences [E], [E'], [F], [F'], and morphisms [f : E -> E'] and [g : F -> F'] there is a morphism [E + F -> E' + F']. *)
 Lemma functor_abses_directsum `{Funext} {A A' B B' C C' D D' : AbGroup}
       {E : AbSES B A} {E' : AbSES B' A'} {F : AbSES D C} {F' : AbSES D' C'}
@@ -225,11 +214,6 @@ Defined.
 (** ** Results about pullbacks of short exact sequences *)
 (** Place in Algebra/AbGroups/AbSES/Pullback. *)
 
-(** For every [E : AbSES B A], the pullback of [E] along [id_B] is [E]. *)
-Definition abses_pullback_id `{Univalence} {A B : AbGroup} (E : AbSES B A)
-  : abses_pullback (@grp_homo_id B) E = E
-  := (abses_pullback_component1_id (abses_morphism_id E) (fun _ => idpath))^.
-
 (** For any two [E, F : AbSES B A] and [f, g : B' $-> B], there is a morphism [Ef + Fg -> E + F] induced by the universal properties of the pullbacks of E and F, respectively. *)
 Definition abses_directsum_pullback_morphism `{Funext} {A B B' C D D' : AbGroup}
            {E : AbSES B A} {F : AbSES D C} (f : B' $-> B) (g : D' $-> D)
@@ -249,46 +233,6 @@ Definition abses_directsum_distributive_pullbacks `{Univalence} {A B B' C D D' :
 (** ** Results about pushouts of short exact sequences *)
 (** Place in Algebra/AbGroups/AbSES/Pushout. *)
 
-(** Given [E : AbSES B A'] and [F : AbSES B A] and a morphism [f : E -> F], the pushout of [E] along [f_1] is [F] if [f_3] is homotopic to [id_B]. *)
-Lemma abses_pushout_component3_id' `{Univalence}
-      {A A' B : AbGroup} {E : AbSES B A'} {F : AbSES B A}
-      (f : AbSESMorphism E F) (h : component3 f == grp_homo_id)
-  : abses_pushout (component1 f) E $== F.
-Proof.
-  pose (g := abses_pushout_morphism_rec f).
-  nrapply abses_path_data_to_iso.
-  exists (component2 g); split.
-  + intro x.
-    exact (left_square g _)^.
-  + intro x.
-    exact ((right_square g _) @ h _)^.
-Defined.
-
-(** A version with equality instead of path data. *)
-Definition abses_pushout_component3_id `{Univalence}
-           {A A' B : AbGroup} {E : AbSES B A'} {F : AbSES B A}
-           (f : AbSESMorphism E F) (h : component3 f == grp_homo_id)
-  : abses_pushout (component1 f) E = F
-  := equiv_path_abses_iso (abses_pushout_component3_id' f h).
-
-(** For every [E : AbSES B A], the pushout of [E] along [id_A] is [E]. *)
-Definition abses_pushout_id `{Univalence} {A B : AbGroup} (E : AbSES B A)
-  : abses_pushout (@grp_homo_id A) E = E
-  := abses_pushout_component3_id (abses_morphism_id E) (fun _ => idpath).
-
-(** Pushing out along homotopic maps induces homotopic pushout functors. *)
-Lemma abses_pushout_homotopic' `{Univalence} {A A' B : AbGroup} (f f' : A $-> A') (h : f == f')
-  : abses_pushout (B:=B) f $=> abses_pushout f'.
-Proof.
-  induction (equiv_path_grouphomomorphism h).
-  apply id_transformation.
-Defined.
-
-Definition abses_pushout_homotopic `{Univalence} {A A' B : AbGroup}
-  (f f' : A $-> A') (h : f == f')
-  : abses_pushout (B:=B) f == abses_pushout f'
-  := equiv_path_data_homotopy _ _ (abses_pushout_homotopic' _ _ h).
-
 (** Given short exact sequences [E] and [F] and homomorphisms [f : A' $-> A] and [g : D' $-> D], there is a morphism [E + F -> fE + gF] induced by the universal properties of the pushouts of [E] and [F]. *)
 Definition abses_directsum_pushout_morphism `{Univalence}
            {A A' B C D D' : AbGroup} {E : AbSES B A'} {F : AbSES C D'}
@@ -307,15 +251,6 @@ Definition abses_directsum_distributive_pushouts `{Univalence}
 (** ** Results about the Baer sum *)
 (** Place in Algebra/AbGroups/AbSES/BaerSum. *)
 
-(** Given a morphism [f] of short exact sequences, the pushout of the domain along [f_1] equals the pullback of the codomain along [f_3]. *)
-Lemma abses_pushout_is_pullback `{Univalence} {A A' B B' : AbGroup}
-      {E : AbSES B A} {E' : AbSES B' A'} (f : AbSESMorphism E E')
-  : abses_pushout (component1 f) E = abses_pullback (component3 f) E'.
-Proof.
-  (* The morphism [f : E -> E'] factors as [E -> f_1 E -> E'], where the first map is the map defining the pushout [f_1 E] and the second map is denoted [abses_pushout_morphism_rec f] below.  This second map is the identity on the first component, so it presents its domain as the pullback of [E'] along [f_3]. *)
-  exact (abses_pullback_component1_id (abses_pushout_morphism_rec f) (fun _ => idpath)).
-Defined.
-
 (** Given a short exact sequence [A -> E -> B] and maps [f : A -> A'], [g : B' -> B], we can change the order of pushing out along [f] and pulling back along [g]. *)
 Lemma abses_reorder_pullback_pushout `{Univalence} {A A' B B' : AbGroup}
       (E : AbSES B A) (f : A $-> A') (g : B' $-> B)
@@ -327,6 +262,9 @@ Proof.
   refine (abses_pushout_is_pullback (Build_AbSESMorphism f (component2 F) g _ _)); apply F.
 Defined.
 
+(* jarl: This speeds up the usage of [isprofunctor] below. *)
+Opaque abses_pushout abses_pullback.
+
 (** The Baer sum distributes over pullbacks. *)
 Lemma baer_sum_distributive_pullbacks `{Univalence} {A B B' : AbGroup}
   {E : AbSES B A} (f g : ab_hom B' B)
@@ -336,7 +274,11 @@ Proof.
   refine ((abses_pullback_compose (B1:=ab_biprod B B) _ _ E)^ @ _).
   refine (ap (abses_pullback _) (abses_pushout_is_pullback (abses_codiagonal E))^ @ _).
   unfold abses_codiagonal, component1.
-  refine ((abses_reorder_pullback_pushout _ _ _)^ @ _ @ abses_reorder_pullback_pushout _ _ _).
+  refine (_^ @ _ @ _).
+  { (* apply abses_reorder_pullback_pushout. *)
+    exact (isprofunctor AbSES' _ _ (abses_direct_sum E E)). }
+  2: { (* apply abses_reorder_pullback_pushout. *)
+    exact (isprofunctor AbSES' _ _ _). }
   refine (ap (abses_pushout _) _).
   refine (ap (fun h => abses_pullback h _) (ab_biprod_corec_diagonal _ _) @ _).
   refine ((abses_pullback_compose _ _ (abses_direct_sum E E))^ @ _).
@@ -355,7 +297,7 @@ Proof.
   refine ((abses_pushout_compose _ _ _)^ @ _).
   refine (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F)) @ _).
   unfold abses_swap_morphism, component3.
-  apply abses_reorder_pullback_pushout.
+  exact (isprofunctor AbSES' _ _ _).
 Defined.
 
 (** The right unit law for the Baer sum says that for all [E : AbSES B A], E + E_0 = E, where E_0 is the split short exact sequence. *)
@@ -397,12 +339,12 @@ Lemma baer_sum_distributive_pushouts `{Univalence}
 Proof.
   unfold abses_baer_sum.
   refine ((abses_pushout_compose (A1 := ab_biprod A A) _ _ E)^ @ _).
-  refine (_ @ abses_reorder_pullback_pushout _ ab_codiagonal ab_diagonal).
+  refine (_ @ isprofunctor AbSES' _ _ _). 
   refine (ap (abses_pushout ab_codiagonal) _).
   refine (ap (fun f => abses_pushout f E) (ab_biprod_corec_diagonal f g) @ _).
   refine ((abses_pushout_compose _ _ E)^ @ _).
   refine (ap (abses_pushout _) (abses_pushout_is_pullback (abses_diagonal E)) @ _).
-  refine (abses_reorder_pullback_pushout _ _ _ @ _).
+  refine (isprofunctor AbSES' _ _ _ @ _).
   exact (ap (abses_pullback _) (abses_directsum_distributive_pushouts f g)).
 Defined.
 
@@ -426,7 +368,7 @@ Proof.
     refine (ap (abses_pullback _) _).
     refine (_ @ ap (abses_direct_sum _) (abses_pushout_id G)).
     apply abses_directsum_distributive_pushouts.
-  - refine (ap (abses_pullback _) (abses_reorder_pullback_pushout _ _ _) @ _).
+  - refine (ap (abses_pullback _) (isprofunctor AbSES' _ _ _) @ _).
     refine (abses_pullback_compose _ _ _ @ _).
     refine (ap (abses_pullback _) _).
     apply abses_pushout_compose.
@@ -444,7 +386,7 @@ Proof.
   refine ((abses_pushout_compose _ _ _)^ @ _).
   refine (ap _ (abses_pushout_is_pullback (abses_twist_directsum E F G)) @ _).
   unfold abses_twist_directsum, component3.
-  apply abses_reorder_pullback_pushout.
+  exact (isprofunctor AbSES' _ _ _).
 Defined.
 
 (** It now follows that we can twist the order of the summands in the Baer sum. *)
@@ -498,75 +440,16 @@ Proof.
   apply baer_sum_commutative.
 Defined.
 
-(** Ext is a covariant 0-functor in its second variable. *)
-Global Instance is0functor_ext_covariant `{Univalence} {B : AbGroup} 
-  : Is0Functor (Ext B).
-Proof.
-  snrapply Build_Is0Functor.
-  intros A A' f.
-  exact (Trunc_functor _ (abses_pushout f)).
-Defined.
-
-(** Ext is a contravariant 0-functor in its first variable. *)
-Global Instance is0functor_ext_contravariant `{Univalence} {A : AbGroup} 
-  : Is0Functor (A := AbGroup^op) (fun B => Ext B A).
-Proof.
-  snrapply Build_Is0Functor.
-  intros B' B f.
-  exact (Trunc_functor _ (abses_pullback f)).
-Defined.
-
-(** Ext is a covariant 1-functor in its second variable. *)
-Global Instance is1functor_ext_covariant `{Univalence} {B : AbGroup}
-  : Is1Functor (Ext B).
-Proof.
-  snrapply Build_Is1Functor.
-  - intros A A' f g h E.
-    strip_truncations.
-    cbn. apply ap.
-    apply (abses_pushout_homotopic _ _ h).
-  - intros A E.
-    strip_truncations.
-    cbn. apply ap.
-    apply abses_pushout_id.
-  - intros C C' D f g E. 
-    strip_truncations.
-    cbn. apply ap.
-    symmetry; apply abses_pushout_compose.
-Defined.
-
-(** Ext is a contravariant 1-functor in its first variable. *)
-
-(* To do: remove (A := AbGroup^op) when definition of Ext is changed. *)
-Global Instance is1functor_ext_contravariant `{Univalence} {A : AbGroup}
-  : Is1Functor (A := AbGroup^op) (fun B => Ext B A).
-Proof.
-  snrapply Build_Is1Functor.
-  - intros C C' f g h E.
-    strip_truncations.
-    cbn. apply ap.
-    apply (abses_pullback_phomotopic _ _ h).
-  - intros C E.
-    strip_truncations.
-    cbn. apply ap.
-    apply abses_pullback_id.
-  - intros C C' D f g E.
-    strip_truncations.
-    cbn. apply ap.
-    symmetry; apply abses_pullback_compose. 
-Defined.
-
 (** Pulling back in [Ext B A] induces a group homomorphism [Hom B' B $-> Ext B' A]. *)
 
-(* Jarl to finish -- in progress *)
 Lemma ext_homo_pullback `{Univalence} {A B B' : AbGroup} (E : Ext B A)
   : GroupHomomorphism (ab_hom B' B) (ab_ext B' A).
 Proof.
   snrapply Build_GroupHomomorphism.
-  - intro f. (* refine (fmap (fun B => Ext B A) _ E).*)
+  - exact (fun f => fmap10 Ext' f A E).
   - intros f g.
-    strip_truncations.
-    cbn. apply ap.
+    revert E; rapply Trunc_ind; intro E; cbn.
+    apply ap.
     apply baer_sum_distributive_pullbacks.
 Defined.
 
@@ -575,10 +458,10 @@ Lemma ext_homo_pushout `{Univalence} {A A' B : AbGroup} (E : Ext B A)
   : GroupHomomorphism (ab_hom A A') (ab_ext B A').
 Proof.
   snrapply Build_GroupHomomorphism.
-  - intro f. exact (ext_pushout f E).
+  - exact (fun f => fmap01 Ext' B f E).
   - intros f g.
-    strip_truncations.
-    cbn. apply ap.
+    revert E; rapply Trunc_ind; intro E; cbn.
+    apply ap.
     apply baer_sum_distributive_pushouts.
 Defined.
 
