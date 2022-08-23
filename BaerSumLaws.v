@@ -275,10 +275,7 @@ Proof.
   refine (ap (abses_pullback _) (abses_pushout_is_pullback (abses_codiagonal E))^ @ _).
   unfold abses_codiagonal, component1.
   refine (_^ @ _ @ _).
-  { (* apply abses_reorder_pullback_pushout. *)
-    exact (isprofunctor AbSES' _ _ (abses_direct_sum E E)). }
-  2: { (* apply abses_reorder_pullback_pushout. *)
-    exact (isprofunctor AbSES' _ _ _). }
+  1, 3: exact (isprofunctor AbSES' _ _ _).
   refine (ap (abses_pushout _) _).
   refine (ap (fun h => abses_pullback h _) (ab_biprod_corec_diagonal _ _) @ _).
   refine ((abses_pullback_compose _ _ (abses_direct_sum E E))^ @ _).
@@ -339,7 +336,7 @@ Lemma baer_sum_distributive_pushouts `{Univalence}
 Proof.
   unfold abses_baer_sum.
   refine ((abses_pushout_compose (A1 := ab_biprod A A) _ _ E)^ @ _).
-  refine (_ @ isprofunctor AbSES' _ _ _). 
+  refine (_ @ isprofunctor AbSES' _ _ _).
   refine (ap (abses_pushout ab_codiagonal) _).
   refine (ap (fun f => abses_pushout f E) (ab_biprod_corec_diagonal f g) @ _).
   refine ((abses_pushout_compose _ _ E)^ @ _).
@@ -368,7 +365,8 @@ Proof.
     refine (ap (abses_pullback _) _).
     refine (_ @ ap (abses_direct_sum _) (abses_pushout_id G)).
     apply abses_directsum_distributive_pushouts.
-  - refine (ap (abses_pullback _) (isprofunctor AbSES' _ _ _) @ _).
+  - refine (ap (abses_pullback _) _ @ _).
+    1: exact (isprofunctor AbSES' _ _ _).
     refine (abses_pullback_compose _ _ _ @ _).
     refine (ap (abses_pullback _) _).
     apply abses_pushout_compose.
