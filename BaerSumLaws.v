@@ -272,8 +272,7 @@ Proof.
   refine (ap (abses_pullback _) (abses_pushout_is_pullback (abses_codiagonal E))^ @ _).
   unfold abses_codiagonal, component1.
   refine (_^ @ _ @ _).
-  1: apply abses_reorder_pullback_pushout.
-  2: apply abses_reorder_pullback_pushout.
+  1,3: apply abses_reorder_pullback_pushout.
   refine (ap (abses_pushout _) _).
   refine (ap (fun h => abses_pullback h _) (ab_biprod_corec_diagonal _ _) @ _).
   refine ((abses_pullback_compose _ _ (abses_direct_sum E E))^ @ _).
