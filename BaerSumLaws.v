@@ -262,9 +262,6 @@ Proof.
   refine (abses_pushout_is_pullback (Build_AbSESMorphism f (component2 F) g _ _)); apply F.
 Defined.
 
-(* jarl: This speeds up the usage of [isprofunctor] below. *)
-Opaque abses_pushout abses_pullback.
-
 (** The Baer sum distributes over pullbacks. *)
 Lemma baer_sum_distributive_pullbacks `{Univalence} {A B B' : AbGroup}
   {E : AbSES B A} (f g : ab_hom B' B)
@@ -275,10 +272,8 @@ Proof.
   refine (ap (abses_pullback _) (abses_pushout_is_pullback (abses_codiagonal E))^ @ _).
   unfold abses_codiagonal, component1.
   refine (_^ @ _ @ _).
-  { (* apply abses_reorder_pullback_pushout. *)
-    exact (isprofunctor AbSES' _ _ (abses_direct_sum E E)). }
-  2: { (* apply abses_reorder_pullback_pushout. *)
-    exact (isprofunctor AbSES' _ _ _). }
+  1: apply abses_reorder_pullback_pushout.
+  2: apply abses_reorder_pullback_pushout.
   refine (ap (abses_pushout _) _).
   refine (ap (fun h => abses_pullback h _) (ab_biprod_corec_diagonal _ _) @ _).
   refine ((abses_pullback_compose _ _ (abses_direct_sum E E))^ @ _).
@@ -297,7 +292,7 @@ Proof.
   refine ((abses_pushout_compose _ _ _)^ @ _).
   refine (ap _ (abses_pushout_is_pullback (abses_swap_morphism E F)) @ _).
   unfold abses_swap_morphism, component3.
-  exact (isprofunctor AbSES' _ _ _).
+  apply abses_pushout_pullback_reorder.
 Defined.
 
 (** The right unit law for the Baer sum says that for all [E : AbSES B A], E + E_0 = E, where E_0 is the split short exact sequence. *)
@@ -339,12 +334,12 @@ Lemma baer_sum_distributive_pushouts `{Univalence}
 Proof.
   unfold abses_baer_sum.
   refine ((abses_pushout_compose (A1 := ab_biprod A A) _ _ E)^ @ _).
-  refine (_ @ isprofunctor AbSES' _ _ _). 
+  refine (_ @ abses_pushout_pullback_reorder _ _ _).
   refine (ap (abses_pushout ab_codiagonal) _).
   refine (ap (fun f => abses_pushout f E) (ab_biprod_corec_diagonal f g) @ _).
   refine ((abses_pushout_compose _ _ E)^ @ _).
   refine (ap (abses_pushout _) (abses_pushout_is_pullback (abses_diagonal E)) @ _).
-  refine (isprofunctor AbSES' _ _ _ @ _).
+  refine (abses_pushout_pullback_reorder _ _ _ @ _).
   exact (ap (abses_pullback _) (abses_directsum_distributive_pushouts f g)).
 Defined.
 
@@ -354,8 +349,8 @@ Defined.
 Definition abses_trinary_baer_sum `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
   : AbSES B A
   := abses_pullback ab_triagonal
-                   (abses_pushout ab_cotriagonal
-                                  (abses_direct_sum (abses_direct_sum E F) G)).
+       (abses_pushout ab_cotriagonal
+          (abses_direct_sum (abses_direct_sum E F) G)).
 
 (** For [E, F, G : AbSES B A], the Baer sum of [E], [F] and [G] (associated left) is equal to the trinary Baer sum of [E], [F] and [G]. *)
 Lemma baer_sum_is_trinary `{Univalence} {A B : AbGroup} (E F G : AbSES B A)
@@ -368,7 +363,7 @@ Proof.
     refine (ap (abses_pullback _) _).
     refine (_ @ ap (abses_direct_sum _) (abses_pushout_id G)).
     apply abses_directsum_distributive_pushouts.
-  - refine (ap (abses_pullback _) (isprofunctor AbSES' _ _ _) @ _).
+  - refine (ap (abses_pullback _) (abses_pushout_pullback_reorder _ _ _) @ _).
     refine (abses_pullback_compose _ _ _ @ _).
     refine (ap (abses_pullback _) _).
     apply abses_pushout_compose.
@@ -386,7 +381,7 @@ Proof.
   refine ((abses_pushout_compose _ _ _)^ @ _).
   refine (ap _ (abses_pushout_is_pullback (abses_twist_directsum E F G)) @ _).
   unfold abses_twist_directsum, component3.
-  exact (isprofunctor AbSES' _ _ _).
+  exact (abses_pushout_pullback_reorder _ _ _).
 Defined.
 
 (** It now follows that we can twist the order of the summands in the Baer sum. *)
