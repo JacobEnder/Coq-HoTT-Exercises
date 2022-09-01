@@ -448,7 +448,7 @@ Proof.
   - repeat split.
     1: exact _.
     all: intro E.  1: intros F G.
-    all: strip_truncations; unfold mon_unit, point, ispointed_ext; apply (ap tr).
+    all: strip_truncations; unfold mon_unit, point; apply (ap tr).
     + symmetry; apply baer_sum_associative.
     + apply baer_sum_unit_l.
     + apply baer_sum_unit_r.

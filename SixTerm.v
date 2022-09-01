@@ -55,8 +55,35 @@ Proof.
   - rapply concat_pV.
 Defined.
 
-(** [loops_abses_inv] is a group homomorphism *)
+(* [loops_abses] is a group isomorphism *)
 Definition iso_loops_abses `{Univalence} {A B : AbGroup@{u}}
+  : GroupIsomorphism (ab_hom@{u _ w} B A)
+      (loops_1trunc (AbSES@{w u u u u u} B A)).
+Proof.
+  srapply Build_GroupIsomorphism'.
+  1: apply loops_abses.
+  intros phi psi.
+  snrapply (equiv_ap_inv' equiv_path_abses).
+  apply path_sigma_hprop.
+  apply equiv_path_grouphomomorphism; intros [a b].
+  unfold loops_abses.
+  rewrite (eissect equiv_path_abses (abses_endomorphism_trivial^-1 (sg_op phi psi))).
+  unfold equiv_path_abses.
+  nrefine (_ @ ap (fun x => (equiv_path_abses^-1 x).1 _) _).
+  2: exact (abses_path_data_compose_beta _ _)^.
+  rewrite (equiv_inverse_compose _ _ _).
+  nrefine (_ @ ap (fun x => ((equiv_path_abses_data _ _)^-1 x).1 _) _^).
+  2: apply eissect.
+  cbn.
+  apply path_prod'.
+  - rewrite grp_unit_l.
+    apply associativity.
+  - exact (grp_unit_l _)^.
+Defined.
+
+(** [loops_abses_inv] is a group isomorphism *)
+(* jarl: Of course this follows from the previous result, but we should decide on which one to keep. *)
+Definition iso_loops_abses_inv `{Univalence} {A B : AbGroup@{u}}
   : GroupIsomorphism
       (loops_1trunc@{v} (AbSES@{v u u u u u} B A))
       (ab_hom@{u v w} B A).
@@ -84,9 +111,9 @@ Proof.
 Defined.
 
 (** Under the equivalence [loops_abses], [fmap loops (abses_pullback g)] corresponds to precomposition by [g]. *)
-Definition abses_loops_pullback `{Univalence} {B B' A : AbGroup} (g : B $-> B')
-  : loops_abses_inv o fmap loops (abses_pullback_pmap (A:=A) g)
-    == (fun f => f $o g) o loops_abses_inv.
+Definition abses_loops_pullback_inv `{Univalence} {B B' A : AbGroup} (g : B $-> B')
+  : Square (IsGraph0:=isgraph_type) loops_abses_inv loops_abses_inv
+      (fmap loops (abses_pullback_pmap (A:=A) g)) (fun f => f $o g).
 Proof.
   intro phi; unfold loops_abses_inv.
   refine (ap abses_endomorphism_trivial _
@@ -98,6 +125,19 @@ Proof.
   by apply equiv_path_grouphomomorphism.
 Defined.
 
+(* jarl: I was hoping to deduce the following from the previous using [vinverse], but couldn't get it to work. *)
+Definition abses_loops_pullback `{Univalence} {B B' A : AbGroup} (g : B $-> B')
+  : Square (IsGraph0:=isgraph_type) loops_abses loops_abses
+      (fun f => f $o g) (fmap loops (abses_pullback_pmap (A:=A) g)).
+Proof.
+  intro phi.
+  rapply moveR_equiv_M'.
+  nrefine (_ @ (abses_loops_pullback_inv g (loops_abses phi))^).
+  refine (ap (fun f => f $o g) (x:=phi) _^).
+  unfold loops_abses_inv, loops_abses.
+  refine (ap _ (eissect equiv_path_abses _) @ _).
+  apply eisretr.
+Defined.
 
 (** ** The six-term exact sequence *)
 
@@ -109,7 +149,6 @@ Definition pequiv_groupisomorphism {A B : Group}
   := fun phi => Build_pEquiv _ _ phi _.
 
 Coercion pequiv_groupisomorphism : GroupIsomorphism >-> pEquiv.
-
 
 From HoTT Require Import Modalities.ReflectiveSubuniverse Modalities.Identity.
 
@@ -127,34 +166,136 @@ Defined.
 (* jarl: The exact sequence [ab_hom C A $-> ab_hom E A $-> ab_hom B A] lives in the base universe, whereas the exact sequence coming from [loops [AbSES ? ?)] lives in a higher universe. Unforunately, [isexact_square_if] doesn't let the two fiber sequences live in separate universes (though maybe one could change it to allow for that). Instead, we've made [ab_hom] polymorphic so that it spits out an abelian group in whatever higher universe we need. *)
 
 (** The sequence [ab_hom C A $-> ab_hom E A $-> ab_hom B A] is exact. *)
-(* jarl: This definitely needs a clea *)
-Definition abses_sixterm_1 `{Univalence} {A B C: AbGroup} (E : AbSES C B)
+(* jarl: This needs to be sped up. *)
+Definition abses_sixterm1 `{Univalence} {A B C: AbGroup} (E : AbSES C B)
   : IsExact (Tr (-1))
       (fmap10 ab_hom@{u _ w} (projection E) A)
       (fmap10 ab_hom (inclusion E) A).
 Proof.
   snrapply isexact_square_if.
-  - exact (loops_1trunc (AbSES C A)).
-  - exact (loops_1trunc (AbSES E A)).
-  - exact (loops_1trunc (AbSES B A)).
-  - exact (fmap loops (abses_pullback_pmap (projection E))).
-  - exact (fmap loops (abses_pullback_pmap (inclusion E))).
-  - symmetry; exact iso_loops_abses.
-  - symmetry; exact iso_loops_abses.
-  - symmetry; exact iso_loops_abses.
-    (* jarl: Factor this out as a lemma or prove it instead of [abses_loops_pullback]. *)
-  - nrapply moveR_pequiv_Vf.
-    refine (_ @* pmap_compose_assoc _ _ _).
-    (* todo: This function is incorrectly named! It should be [moveL_pequiv_fV]. *)
-    nrapply moveR_pequiv_fV.
-    apply phomotopy_homotopy_hset; intro phi.
-    exact (abses_loops_pullback _ phi)^.
-  - nrapply moveR_pequiv_Vf.
-    refine (_ @* pmap_compose_assoc _ _ _).
-    nrapply moveR_pequiv_fV. (* todo: incorrectly named! *)
-    apply phomotopy_homotopy_hset; intro phi.
-    exact (abses_loops_pullback _ phi)^.
-  - apply isexact_purely_O.
-    apply isexact_loops.
-    exact _.
+  1-3: refine (loops_1trunc (AbSES _ A)); shelve.
+  1-2: refine (fmap loops (abses_pullback_pmap _)).
+  1: exact (projection E).
+  1: exact (inclusion E). 
+  1-3: symmetry; exact iso_loops_abses_inv.
+  1,2: apply phomotopy_homotopy_hset; intro phi;
+         exact (abses_loops_pullback _ phi).
+  apply isexact_purely_O.
+  apply isexact_loops.
+  exact _.
+Defined.
+
+(** The untruncated connecting map. *)
+Definition abses_sixterm_untrunc_connecting_map@{u u0 +} `{Univalence}
+  {A B C: AbGroup@{u}} (E : AbSES@{u0 u u u u u} C B)
+  : ab_hom@{u u0 u0} B A ->* AbSES C A
+  := connecting_map (abses_pullback_pmap (A:=A) (projection E))
+       (abses_pullback_pmap (inclusion E)) o* iso_loops_abses.
+
+(** The connecting map into the truncation [Ext C A]. *)
+Definition abses_sixterm_connecting_map@{u u0 +} `{Univalence}
+  {A B C: AbGroup@{u}} (E : AbSES@{u0 u u u u u} C B)
+  : ab_hom@{u u0 u0} B A ->* Ext C A
+  := ptr o* (connecting_map (abses_pullback_pmap (A:=A) (projection E))
+              (abses_pullback_pmap (inclusion E))
+              o* iso_loops_abses).
+
+(** Exactness at the domain of the untruncated connecting map. *)
+Definition abses_sixterm2_untrunc `{Univalence} {A B C: AbGroup} (E : AbSES C B)
+  : IsExact (Tr (-1))
+      (fmap10 ab_hom (inclusion E) A)
+      (abses_sixterm_untrunc_connecting_map E).
+Proof.
+  snrapply (isexact_equiv_i _ _ _ _ iso_loops_abses).
+  2: rapply (fmap loops (abses_pullback_pmap (inclusion E))).
+  1: exact iso_loops_abses.
+  - apply phomotopy_homotopy_hset; intro phi.
+    exact (abses_loops_pullback _ phi).
+  - rapply isexact_purely_O.
+Defined.
+
+(* todo: Move to Pointed/pTrunc ? Is this already in the library? *)
+Lemma fmap_pTr_square `{Univalence} {X Y : pType} (f : X ->* Y)
+  : ptr o* f ==* fmap (pTr 0) f o* ptr.
+Proof.
+  srapply Build_pHomotopy.
+  1: easy.
+  by pointed_reduce.
+Defined.
+                                                    
+(** We replace the [ab_hom]s with their set-truncations, then the exact sequence is the set-truncation of the untruncated sequence just above, and exactness follows from [isexact_ptr]. *)
+Definition abses_sixterm2 `{Univalence} {A B C: AbGroup} (E : AbSES C B)
+  : IsExact (Tr (-1))
+      (fmap10 ab_hom (inclusion E) A)
+      (abses_sixterm_connecting_map E).
+Proof.
+  snrapply (isexact_square_if (Tr (-1))
+              (F:=pTr 0 (ab_hom E A)) (X:=pTr 0 (ab_hom B A)) (Y:=Ext C A)).
+  3,4: exact pequiv_ptr.
+  - exact (fmap (pTr 0) (fmap10 ab_hom (inclusion E) A)).
+  - exact (fmap (pTr 0) (abses_sixterm_untrunc_connecting_map E)).
+  - reflexivity.
+  - apply fmap_pTr_square.
+  - refine (pmap_postcompose_idmap _ @* _).
+    unfold abses_sixterm_connecting_map.
+    apply fmap_pTr_square.  
+  - apply isexact_ptr.
+    apply abses_sixterm2_untrunc.
+Defined.
+
+(* todo: place in Homotopy/ExactSequence.v *)
+Lemma iscomplex_cancelL {F' F X Y : pType}
+  (i : F ->* X) (f : X ->* Y) (e : F' <~>* F) `{C : IsComplex i f}
+  : IsComplex (i o* e) f.
+Proof.
+  unfold IsComplex.
+  refine ((pmap_compose_assoc _ _ _)^* @* _).
+  refine (pmap_prewhisker _ C @* _).
+  apply postcompose_pconst.
+Defined.
+
+(** Precomposing with an equivalence doesn't change exactness. *)
+(* todo: place in Homotopy/ExactSequence.v *)
+Lemma isexact_cancelL (O : Modality) {F' F X Y : pType}
+  (i : F ->* X) (f : X ->* Y) (e : F' <~>* F) `{IsExact O _ _ _ i f}
+  : IsExact O (i o* e) f.
+Proof.
+  srapply Build_IsExact.
+  { apply iscomplex_cancelL.
+    apply cx_isexact. }
+  rapply (@conn_map_homotopic O _ _ (cxfib _ o e)).
+  intro x; cbn.
+  srapply path_sigma'.
+  1: reflexivity.
+  cbn.
+  exact (concat_1p _ @ concat_p1 _)^.
+Defined.
+  
+Definition abses_sixterm3 `{Univalence} {A B C: AbGroup} (E : AbSES C B)
+  : IsExact (Tr (-1))
+      (abses_sixterm_connecting_map E)
+      (fmap (pTr 0) (abses_pullback_pmap (A:=A) (projection E))).
+(* jarl: Instead of [abses_pullback_pmap] we could use functoriality of Ext. *)
+Proof.
+  snrapply (isexact_square_if (Tr (-1))
+              (F:=pTr 0 (ab_hom B A)) (X:=Ext C A) (Y:=Ext E A)).
+  4,5: reflexivity.
+  - exact (fmap (pTr 0) (abses_sixterm_untrunc_connecting_map E)).
+  - exact (fmap (pTr 0) (abses_pullback_pmap (projection E))).
+  - exact pequiv_ptr.
+  - refine (pmap_postcompose_idmap _ @* _).
+    apply fmap_pTr_square.
+  - exact (pmap_postcompose_idmap _ @* (pmap_precompose_idmap _)^*).
+  - apply isexact_ptr.
+  rapply (isexact_cancelL (Tr (-1)) _ _ iso_loops_abses).
+  rapply isexact_purely_O.
+Defined.
+
+Definition abses_sixterm4 `{Univalence} {A B C : AbGroup} (E : AbSES C B)
+  : IsExact (Tr (-1))
+      (fmap (pTr 0) (abses_pullback_pmap (A:=A) (projection E)))
+      (fmap (pTr 0) (abses_pullback_pmap (A:=A) (inclusion E))).
+Proof.
+  rapply isexact_ptr.
+  rapply isexact_purely_O.
 Defined.
