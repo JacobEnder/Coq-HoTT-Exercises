@@ -56,9 +56,9 @@ Proof.
 Defined.
 
 (* [loops_abses] is a group isomorphism *)
-Definition iso_loops_abses `{Univalence} {A B : AbGroup@{u}}
-  : GroupIsomorphism (ab_hom@{u _ w} B A)
-      (loops_1trunc (AbSES@{w u u u u u} B A)).
+Definition iso_loops_abses `{Univalence} {A B : AbGroup}
+  : GroupIsomorphism (ab_hom B A)
+      (loops_1trunc (AbSES B A)).
 Proof.
   srapply Build_GroupIsomorphism'.
   1: apply loops_abses.
@@ -83,10 +83,10 @@ Defined.
 
 (** [loops_abses_inv] is a group isomorphism *)
 (* jarl: Of course this follows from the previous result, but we should decide on which one to keep. *)
-Definition iso_loops_abses_inv `{Univalence} {A B : AbGroup@{u}}
+Definition iso_loops_abses_inv `{Univalence} {A B : AbGroup}
   : GroupIsomorphism
-      (loops_1trunc@{v} (AbSES@{v u u u u u} B A))
-      (ab_hom@{u v w} B A).
+      (loops_1trunc (AbSES B A))
+      (ab_hom B A).
 Proof.
   snrapply Build_GroupIsomorphism'.
   1: apply loops_abses_inv.
@@ -167,9 +167,11 @@ Defined.
 
 (** The sequence [ab_hom C A $-> ab_hom E A $-> ab_hom B A] is exact. *)
 (* jarl: This needs to be sped up. *)
-Definition abses_sixterm1 `{Univalence} {A B C: AbGroup} (E : AbSES C B)
-  : IsExact (Tr (-1))
-      (fmap10 ab_hom@{u _ w} (projection E) A)
+Set Printing Universes.
+Definition abses_sixterm1 `{Univalence} {A B C: AbGroup@{u}}
+  (E : AbSES@{u u _ v _ _ _ _}  C B)
+  : IsExact@{v v v _ _ _ _ _ _ _} (Tr (-1))
+      (fmap10 ab_hom (projection E) A)
       (fmap10 ab_hom (inclusion E) A).
 Proof.
   snrapply isexact_square_if.
@@ -186,23 +188,24 @@ Proof.
 Defined.
 
 (** The untruncated connecting map. *)
-Definition abses_sixterm_untrunc_connecting_map@{u u0 +} `{Univalence}
-  {A B C: AbGroup@{u}} (E : AbSES@{u0 u u u u u} C B)
-  : ab_hom@{u u0 u0} B A ->* AbSES C A
+Definition abses_sixterm_untrunc_connecting_map `{Univalence}
+  {A B C: AbGroup} (E : AbSES C B)
+  : ab_hom B A ->* AbSES C A
   := connecting_map (abses_pullback_pmap (A:=A) (projection E))
        (abses_pullback_pmap (inclusion E)) o* iso_loops_abses.
 
 (** The connecting map into the truncation [Ext C A]. *)
-Definition abses_sixterm_connecting_map@{u u0 +} `{Univalence}
-  {A B C: AbGroup@{u}} (E : AbSES@{u0 u u u u u} C B)
-  : ab_hom@{u u0 u0} B A ->* Ext C A
+Definition abses_sixterm_connecting_map `{Univalence}
+  {A B C: AbGroup} (E : AbSES C B)
+  : ab_hom B A ->* Ext C A
   := ptr o* (connecting_map (abses_pullback_pmap (A:=A) (projection E))
               (abses_pullback_pmap (inclusion E))
               o* iso_loops_abses).
 
 (** Exactness at the domain of the untruncated connecting map. *)
-Definition abses_sixterm2_untrunc `{Univalence} {A B C: AbGroup} (E : AbSES C B)
-  : IsExact (Tr (-1))
+Definition abses_sixterm2_untrunc `{Univalence}
+  {A B C : AbGroup} (E : AbSES@{u u _ v _ _ _ _} C B)
+  : IsExact@{v v v _ _ _ _ _ _ _} (Tr (-1))
       (fmap10 ab_hom (inclusion E) A)
       (abses_sixterm_untrunc_connecting_map E).
 Proof.
@@ -222,10 +225,11 @@ Proof.
   1: easy.
   by pointed_reduce.
 Defined.
-                                                    
+
 (** We replace the [ab_hom]s with their set-truncations, then the exact sequence is the set-truncation of the untruncated sequence just above, and exactness follows from [isexact_ptr]. *)
-Definition abses_sixterm2 `{Univalence} {A B C: AbGroup} (E : AbSES C B)
-  : IsExact (Tr (-1))
+Definition abses_sixterm2 `{Univalence} {A B C: AbGroup}
+  (E : AbSES@{u u _ v _ _ _ _} C B)
+  : IsExact@{v v v _ _ _ _ _ _ _} (Tr (-1))
       (fmap10 ab_hom (inclusion E) A)
       (abses_sixterm_connecting_map E).
 Proof.
@@ -238,7 +242,7 @@ Proof.
   - apply fmap_pTr_square.
   - refine (pmap_postcompose_idmap _ @* _).
     unfold abses_sixterm_connecting_map.
-    apply fmap_pTr_square.  
+    nrapply fmap_pTr_square. (* [apply] here just spins *)
   - apply isexact_ptr.
     apply abses_sixterm2_untrunc.
 Defined.
@@ -271,8 +275,9 @@ Proof.
   exact (concat_1p _ @ concat_p1 _)^.
 Defined.
   
-Definition abses_sixterm3 `{Univalence} {A B C: AbGroup} (E : AbSES C B)
-  : IsExact (Tr (-1))
+Definition abses_sixterm3 `{Univalence} {A B C: AbGroup}
+  (E : AbSES@{u u _ v _ _ _ _} C B)
+  : IsExact@{v v v _ _ _ _ _ _ _} (Tr (-1))
       (abses_sixterm_connecting_map E)
       (fmap (pTr 0) (abses_pullback_pmap (A:=A) (projection E))).
 (* jarl: Instead of [abses_pullback_pmap] we could use functoriality of Ext. *)
@@ -284,7 +289,7 @@ Proof.
   - exact (fmap (pTr 0) (abses_pullback_pmap (projection E))).
   - exact pequiv_ptr.
   - refine (pmap_postcompose_idmap _ @* _).
-    apply fmap_pTr_square.
+    nrapply fmap_pTr_square.
   - exact (pmap_postcompose_idmap _ @* (pmap_precompose_idmap _)^*).
   - apply isexact_ptr.
   rapply (isexact_cancelL (Tr (-1)) _ _ iso_loops_abses).

@@ -12,19 +12,19 @@ Local Open Scope mc_add_scope.
 (** ** Lemmas about abelian groups *)
 (** Place these results in Algebra/AbGroups/AbelianGroup. *)
 
-Global Instance negate_hom@{u v} (A : Group@{u}) (B : AbGroup@{u})
-  : Negate (@Hom@{v u} Group@{u} _ A B) := grp_homo_compose ab_homo_negation.
+Global Instance negate_hom (A : Group) (B : AbGroup)
+  : Negate (Hom A B) := grp_homo_compose ab_homo_negation.
 
 (** For [A, B : AbGroup], homomorphisms A $-> B form an abelian group.  *)
-Definition grp_hom@{u v w} `{Funext} (A : Group@{u}) (B : AbGroup@{u})
-  : Group@{w}.
+Definition grp_hom `{Funext} (A : Group) (B : AbGroup)
+  : Group.
 Proof.
-  nrefine (Build_Group@{w}
+  nrefine (Build_Group
               (GroupHomomorphism A B)
-              (fun f g => grp_homo_compose ab_codiagonal@{v u u u u u}
+              (fun f g => grp_homo_compose ab_codiagonal
                          (grp_prod_corec f g))
               grp_homo_const
-              (@negate_hom@{u v} _ _) _).
+              (negate_hom _ _) _).
   repeat split.
   1: exact _.
   all: hnf; intros; apply equiv_path_grouphomomorphism; intro; cbn.
@@ -35,8 +35,8 @@ Proof.
   + apply right_inverse.
 Defined.
 
-Definition ab_hom@{u v w} `{Funext} (A : op@{v v} Group@{u}) (B : AbGroup@{u})
-  : AbGroup@{w}.
+Definition ab_hom `{Funext} (A : Group^op) (B : AbGroup)
+  : AbGroup.
 Proof.
   snrapply (Build_AbGroup (grp_hom A B)).
   intros f g; cbn.
@@ -44,10 +44,10 @@ Proof.
   apply commutativity.
 Defined.
 
-Global Instance is0functor_ab_hom01@{u v w w0} `{Funext} {A : Group^op}
-  : Is0Functor@{v w0 u w} (ab_hom@{u v w} A).
+Global Instance is0functor_ab_hom01 `{Funext} {A : Group^op}
+  : Is0Functor (ab_hom A).
 Proof.
-  snrapply (Build_Is0Functor _ AbGroup@{w}); intros B B' f.
+  snrapply (Build_Is0Functor _ AbGroup); intros B B' f.
   snrapply Build_GroupHomomorphism.
   1: exact (fun g => grp_homo_compose f g).
   intros phi psi.
@@ -55,18 +55,18 @@ Proof.
   exact (grp_homo_op f _ _).
 Defined.
 
-Global Instance is0functor_ab_hom10@{u v w +} `{Funext} {B : AbGroup@{u}}
-  : Is0Functor (swap@{v v _} ab_hom@{u v w} B).
+Global Instance is0functor_ab_hom10 `{Funext} {B : AbGroup@{u}}
+  : Is0Functor (swap ab_hom B).
 Proof.
-  snrapply (Build_Is0Functor (op@{v v} Group@{u}) AbGroup@{w}); intros A A' f.
+  snrapply (Build_Is0Functor (Group^op) AbGroup); intros A A' f.
   snrapply Build_GroupHomomorphism.
   1: exact (fun g => grp_homo_compose g f).
   intros phi psi.
   by apply equiv_path_grouphomomorphism.
 Defined.
 
-Global Instance isprofunctor_ab_hom@{u v w +} `{Funext}
-  : IsProfunctor ab_hom@{u v w}.
+Global Instance isprofunctor_ab_hom `{Funext}
+  : IsProfunctor ab_hom.
 Proof.
   intros A A' f B B' g phi; cbn.
   by apply equiv_path_grouphomomorphism.
