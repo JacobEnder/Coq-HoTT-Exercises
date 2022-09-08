@@ -241,7 +241,7 @@ Proof.
   - apply fmap_pTr_square.
   - refine (pmap_postcompose_idmap _ @* _).
     unfold abses_sixterm_connecting_map.
-    rapply fmap_pTr_square.
+    apply fmap_pTr_square.
   - apply isexact_ptr.
     apply abses_sixterm2_untrunc.
 Defined.
@@ -288,7 +288,7 @@ Proof.
   - exact (fmap (pTr 0) (abses_pullback_pmap (projection E))).
   - exact pequiv_ptr.
   - refine (pmap_postcompose_idmap _ @* _).
-    rapply fmap_pTr_square.
+    apply fmap_pTr_square.
   - exact (pmap_postcompose_idmap _ @* (pmap_precompose_idmap _)^*).
   - apply isexact_ptr.
   rapply (isexact_cancelL (Tr (-1)) _ _ iso_loops_abses).
