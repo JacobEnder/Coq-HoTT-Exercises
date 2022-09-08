@@ -167,9 +167,8 @@ Defined.
 
 (** The sequence [ab_hom C A $-> ab_hom E A $-> ab_hom B A] is exact. *)
 (* jarl: This needs to be sped up. *)
-Set Printing Universes.
-Definition abses_sixterm1 `{Univalence} {A B C: AbGroup@{u}}
-  (E : AbSES@{u u _ v _ _ _ _}  C B)
+Definition abses_sixterm1 `{Univalence} {A B C : AbGroup@{u}}
+  (E : AbSES@{u u _ v _ _ _ _} C B)
   : IsExact@{v v v _ _ _ _ _ _ _} (Tr (-1))
       (fmap10 ab_hom (projection E) A)
       (fmap10 ab_hom (inclusion E) A).
@@ -242,7 +241,7 @@ Proof.
   - apply fmap_pTr_square.
   - refine (pmap_postcompose_idmap _ @* _).
     unfold abses_sixterm_connecting_map.
-    nrapply fmap_pTr_square. (* [apply] here just spins *)
+    rapply fmap_pTr_square.
   - apply isexact_ptr.
     apply abses_sixterm2_untrunc.
 Defined.
@@ -289,7 +288,7 @@ Proof.
   - exact (fmap (pTr 0) (abses_pullback_pmap (projection E))).
   - exact pequiv_ptr.
   - refine (pmap_postcompose_idmap _ @* _).
-    nrapply fmap_pTr_square.
+    rapply fmap_pTr_square.
   - exact (pmap_postcompose_idmap _ @* (pmap_precompose_idmap _)^*).
   - apply isexact_ptr.
   rapply (isexact_cancelL (Tr (-1)) _ _ iso_loops_abses).
