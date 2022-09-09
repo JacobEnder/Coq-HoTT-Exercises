@@ -1,8 +1,10 @@
 From HoTT Require Import Basics Types Pointed HSet Spaces.Int Spaces.Finite Spaces.Pos 
   Algebra.Groups Algebra.AbGroups Spaces.Nat Classes.implementations.peano_naturals
-Spaces.Circle Homotopy.ClassifyingSpace Homotopy.Pi1S1 Homotopy.HomotopyGroup Homotopy.Bouquet.
+  Spaces.Circle Homotopy.ClassifyingSpace Homotopy.Pi1S1 Homotopy.HomotopyGroup Homotopy.Bouquet
+  Homotopy.ExactSequence Modalities.ReflectiveSubuniverse.
 
 Require Import Z.
+Require Import BaerSumLaws.
 Local Open Scope positive_scope.
 Local Open Scope int_scope.
 Local Open Scope mc_mult_scope.
@@ -114,7 +116,10 @@ Compute toZ 2.
 
 Lemma modulo_n_n (n : nat) : modulo n (nat_to_Z n) = mon_unit.
 Proof.
-(*  Check (@Z_rec_nat_beta (abgroup_fin n) (@fin_nat n (S O)) n). *)
+  refine ((@Z_rec_nat_beta (abgroup_fin n) (@fin_nat n (S O)) n) @ _).
+  induction n.
+  + cbn. reflexivity.
+  + 
 Admitted.
 
 
@@ -136,14 +141,127 @@ Definition subgroup_Z (n : nat) : Subgroup (abgroup_Z).
     exact ( merely { b : abgroup_Z & grp_pow b n = a }).
   - exact _. (* Coq should already knows it's a proposition. *)
   - cbn. exact admit. (* exact (0 ; ). *)
-  - intros x y. cbn. intros s t.
+  - cbn. intros x y. 
 Admitted.
 
+Definition ab_mul (n : Int) {A : AbGroup} : GroupHomomorphism A A.
+Proof.
+  induction n.
+  - exact (grp_homo_compose ab_homo_negation (ab_mul_nat (pos_to_nat p))).
+  - exact grp_homo_const.
+  - exact (ab_mul_nat (pos_to_nat p)).  
+Defined.
+
+Lemma Z_hom_equiv `{Funext} (A : AbGroup) : GroupIsomorphism (ab_hom ab_Z A) A.
+Proof.
+  snrapply Build_GroupIsomorphism'.
+  - refine (_ oE (equiv_freegroup_rec A Unit)).
+    symmetry. exact (Build_Equiv _ _ (Unit_rec A) _).
+  - intros f g. cbn. reflexivity.
+Defined.
+
+Lemma ab_mul_homo {A B : AbGroup} (n : Int) (f : GroupHomomorphism A B)
+  : grp_homo_compose f (ab_mul n) ==  grp_homo_compose (ab_mul n) f.
+Proof.
+  intro x.
+  induction n.
+  - cbn.
+    refine (grp_homo_inv _ _ @ _).
+    refine (ap negate _).
+    apply grp_pow_homo.
+  - cbn. apply grp_homo_unit.
+  - cbn.
+    apply grp_pow_homo.
+Defined.
+
+Lemma ab_mul_precomp `{Funext} (A : AbGroup) (n : Int)
+  : (Z_hom_equiv A) o (fun f : ab_hom ab_Z A => grp_homo_compose f (ab_mul n))
+    == (ab_mul n) o (Z_hom_equiv A).
+Proof.
+  intro f.
+  cbn.
+  apply (ab_mul_homo n f _).
+Defined.
+
+Lemma isequiv_hset_bijection `{Funext} {A B : Type} `{IsHSet A, IsHSet B} (f : A -> B)
+  `{S: IsSurjection f, E: IsEmbedding f}
+  : IsEquiv f.
+Proof.
+  apply isequiv_contr_map.
+  intro b.
+  assert (z : ((Tr (-1)) (hfiber f b))).
+  1: apply S.
+  revert z.
+  rapply Trunc_rec.
+  intros z.
+  exists z.
+  apply E.
+Defined.
+
+Local Instance isequiv_cxfib_isembedding `{Funext} {A B C : pType} `{IsHSet A, IsHSet B, IsHSet C}
+  (f : A ->* B) (g : B ->* C) (G : IsExact (Tr (-1)) f g) `{E : IsEmbedding f}
+  : IsEquiv (cxfib cx_isexact).
+Proof.
+  nrapply isequiv_hset_bijection.
+  1-3: exact _.
+  rapply (cancelL_mapinO (Tr (-1))).
+Defined.
+                           
+Lemma exactsequence_quotient_iso `{Funext}  (A B C : AbGroup) (f : ab_hom A B) (g : ab_hom B C) (H0 : IsEmbedding f) (H1 : IsSurjection g) (G : IsExact (Tr (-1)) f g)
+  : GroupIsomorphism (QuotientAbGroup B (ab_image_embedding f)) C.
+Proof.
+  snrapply Build_GroupIsomorphism.
+    - snrapply equiv_quotient_abgroup_ump.
+      split with g.
+      intros b x.
+      destruct x as [x p].
+      refine (ap g p^ @ _).
+      rapply cx_isexact.
+    - apply isequiv_hset_bijection.
+      + rapply cancelR_conn_map.
+      + rapply isembedding_isinj_hset.
+        srapply Quotient_ind_hprop; intro x.
+        srapply Quotient_ind_hprop; intro y.
+        intro p.
+        apply qglue.
+        unfold in_cosetL.
+        cbn.
+        assert (q : g ((- x)%mc * y) = mon_unit).
+        {  refine (grp_homo_op _ _ _ @ _).
+          rewrite grp_homo_inv.
+          apply grp_moveL_M1^-1.
+          exact p^. }
+        srefine (((cxfib cx_isexact)^-1 _ ; _)).
+          * exact (_ ; q).
+          * exact (ap pr1 (eisretr (cxfib cx_isexact) _)).
+Defined.
+
+Lemma trivial_surjection_kernel `{Univalence} {A : Group} (f : GroupHomomorphism A grp_trivial) 
+  : grp_kernel f = maximal_subgroup :> Subgroup A.
+Proof.
+  rapply equiv_path_subgroup'.
+  intro g. cbn.
+  split.
+    - exact (fun _ => tt).
+    - intro x. symmetry; apply eta_unit. 
+Defined.
+
+(* To do: For a s.e.s. A -> B ->> 0, left map is an epi*)
+Lemma exactsequence_leftmap_epi `{Funext} {A B : AbGroup}
+  (f : ab_hom A B) (g : ab_hom B abgroup_trivial) (G : IsExact (Tr (-1)) f g)
+    : IsSurjection f.
+Proof.
+  intro b.
+  rapply contr_inhabited_hprop.
+  rapply isexact_preimage.
+  symmetry; apply eta_unit.
+Defined.
 
 (** ** Quotients of [abgroup_Z] *)
 
 (** Define the multiplication-by-n map using [int_mul] (from Spaces.Int.Core). You may find [int_mul_add_distr_l] from Spaces.Int.Spec useful. *)
-Definition mul (n : Int) : GroupHomomorphism abgroup_Z abgroup_Z.
+Definition mul (n : Int) : GroupHomomorphism Z Z.
+  exact (ab_mul n).
 Admitted.
 
 (** We can form quotients of subgroups using [QuotientAbGroup], and [grp_image] gives the image of a map. Coq already knows that subgroups of abelian groups are normal by [isnormal_ab_subgroup]. We currently lack cokernels of maps in the library (though they're easy to define by what I just explained). *)
